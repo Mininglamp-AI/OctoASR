@@ -52,8 +52,8 @@ MODELSCOPE_REPO_MAP = {
     "fsmn-vad-mlx": "PLACEHOLDER_MODELSCOPE_REPO_ID",
 }
 
-GITHUB_RELEASE_BASE_URL = "https://github.com/mano-asr/mano-asr/releases/download"
+GITHUB_RELEASE_BASE_URL = "https://github.com/Mininglamp-AI/mano-asr/releases/download"
 
-GITHUB_REPO = "mano-asr/mano-asr"
+GITHUB_REPO = "Mininglamp-AI/mano-asr"
 UPDATE_CACHE_FILE = CONFIG_DIR / "update_check.json"
 CHECK_INTERVAL = 86400
