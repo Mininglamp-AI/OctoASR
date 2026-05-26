@@ -26,7 +26,7 @@ from .console import success, error, info, warning
 
 
 def _detect_preferred_source() -> str:
-    """探测网络环境，返回 'hf' 或 'modelscope'。"""
+    """Detect network environment, returns 'hf' or 'modelscope'."""
     import os
     import socket
 

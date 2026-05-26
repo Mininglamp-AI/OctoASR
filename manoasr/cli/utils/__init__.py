@@ -1,5 +1,5 @@
 # coding=utf-8
-"""CLI 工具函数"""
+"""CLI utilities"""
 
 from .constants import *
 from .console import *

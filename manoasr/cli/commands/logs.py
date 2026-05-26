@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr logs - 查看日志"""
+"""mano-asr logs - view logs"""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from manoasr.cli.utils.constants import LOG_FILE
 
 
 def parse_log_line(line: str) -> dict | None:
-    """解析单行日志"""
     pattern = r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d+) \[(\w+)\] (.+)$"
     match = re.match(pattern, line)
     if not match:
@@ -28,7 +27,6 @@ def parse_log_line(line: str) -> dict | None:
 
 
 def analyze_logs(lines: list[str], hours: int = 24) -> dict:
-    """分析日志统计"""
     cutoff = datetime.now() - timedelta(hours=hours)
 
     stats = {
@@ -95,23 +93,23 @@ def analyze_logs(lines: list[str], hours: int = 24) -> dict:
 
 
 @click.command()
-@click.option("-f", "--follow", is_flag=True, help="实时跟踪日志")
-@click.option("-n", "--lines", default=50, help="显示最近 N 行")
-@click.option("--errors", is_flag=True, help="只显示错误")
-@click.option("--stats", is_flag=True, help="显示统计信息")
-@click.option("--hours", default=24, help="统计时间范围（小时）")
+@click.option("-f", "--follow", is_flag=True, help="Follow log output")
+@click.option("-n", "--lines", default=50, help="Show last N lines")
+@click.option("--errors", is_flag=True, help="Show errors only")
+@click.option("--stats", is_flag=True, help="Show statistics")
+@click.option("--hours", default=24, help="Stats time range (hours)")
 def logs(follow: bool, lines: int, errors: bool, stats: bool, hours: int):
-    """查看日志
+    """View logs
 
-    示例:
-      mano-asr logs              查看最近50行日志
-      mano-asr logs -f           实时跟踪日志
-      mano-asr logs --errors     只显示错误
-      mano-asr logs --stats      显示统计信息
+    Examples:
+      mano-asr logs              Show last 50 lines
+      mano-asr logs -f           Follow log output
+      mano-asr logs --errors     Show errors only
+      mano-asr logs --stats      Show statistics
     """
 
     if not LOG_FILE.exists():
-        click.echo(info("暂无日志"))
+        click.echo(info("No logs yet"))
         return
 
     if stats:
@@ -120,8 +118,8 @@ def logs(follow: bool, lines: int, errors: bool, stats: bool, hours: int):
 
     try:
         if follow:
-            click.echo(info(f"实时跟踪日志: {LOG_FILE}"))
-            click.echo(info("按 Ctrl+C 退出\n"))
+            click.echo(info(f"Following log: {LOG_FILE}"))
+            click.echo(info("Press Ctrl+C to stop\n"))
             subprocess.run(["tail", "-f", str(LOG_FILE)])
         elif errors:
             result = subprocess.run(
@@ -134,7 +132,7 @@ def logs(follow: bool, lines: int, errors: bool, stats: bool, hours: int):
                 for line in output_lines[-lines:]:
                     _colorize_log_line(line)
             else:
-                click.echo(success("无错误日志"))
+                click.echo(success("No error logs"))
         else:
             result = subprocess.run(
                 ["tail", "-n", str(lines), str(LOG_FILE)],
@@ -145,16 +143,15 @@ def logs(follow: bool, lines: int, errors: bool, stats: bool, hours: int):
                 for line in result.stdout.strip().split("\n"):
                     _colorize_log_line(line)
             else:
-                click.echo(info("日志为空"))
+                click.echo(info("Log is empty"))
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        click.echo(error(f"读取日志失败: {e}"))
+        click.echo(error(f"Failed to read log: {e}"))
         raise SystemExit(1)
 
 
 def _colorize_log_line(line: str):
-    """彩色输出日志行"""
     if "[ERROR]" in line:
         click.echo(click.style(line, fg="red"))
     elif "[WARNING]" in line:
@@ -162,7 +159,6 @@ def _colorize_log_line(line: str):
     elif "API error" in line:
         click.echo(click.style(line, fg="red"))
     elif "Transcribe OK" in line:
-        # 高亮显示转写结果
         text_match = re.search(r"text=(.+)$", line)
         if text_match:
             prefix = line[:line.find("text=")]
@@ -175,31 +171,30 @@ def _colorize_log_line(line: str):
 
 
 def _show_stats(hours: int):
-    """显示日志统计"""
-    print_header(f"日志统计 (最近 {hours} 小时)")
+    print_header(f"Log Stats (last {hours} hours)")
 
     try:
         with open(LOG_FILE, "r", encoding="utf-8") as f:
             all_lines = f.readlines()
     except Exception as e:
-        click.echo(error(f"读取日志失败: {e}"))
+        click.echo(error(f"Failed to read log: {e}"))
         return
 
     stats = analyze_logs(all_lines, hours)
 
     if stats["last_model_type"] or stats["last_model"]:
-        click.echo(key_value("引擎", stats["last_model_type"] or "未知"))
-        click.echo(key_value("模型", stats["last_model"] or "未知"))
+        click.echo(key_value("Engine", stats["last_model_type"] or "unknown"))
+        click.echo(key_value("Model", stats["last_model"] or "unknown"))
         click.echo(f"  {'─' * 35}")
 
-    click.echo(key_value("总日志条数", str(stats["total"])))
-    click.echo(key_value("转写成功", click.style(str(stats["transcriptions"]), fg="green") if stats["transcriptions"] else "0"))
-    click.echo(key_value("错误数", click.style(str(stats["errors"]), fg="red" if stats["errors"] else None)))
-    click.echo(key_value("警告数", click.style(str(stats["warnings"]), fg="yellow" if stats["warnings"] else None)))
+    click.echo(key_value("Total Entries", str(stats["total"])))
+    click.echo(key_value("Transcribed", click.style(str(stats["transcriptions"]), fg="green") if stats["transcriptions"] else "0"))
+    click.echo(key_value("Errors", click.style(str(stats["errors"]), fg="red" if stats["errors"] else None)))
+    click.echo(key_value("Warnings", click.style(str(stats["warnings"]), fg="yellow" if stats["warnings"] else None)))
 
     if stats["by_status"]:
         click.echo(f"\n  {'─' * 35}")
-        click.echo("  状态码统计:")
+        click.echo("  Status Codes:")
         for status, count in sorted(stats["by_status"].items()):
             color = "red" if status >= 500 else ("yellow" if status >= 400 else None)
             click.echo(f"    {status}: {click.style(str(count), fg=color)}")
@@ -208,13 +203,13 @@ def _show_stats(hours: int):
         avg_ms = sum(stats["performance"]) / len(stats["performance"])
         max_ms = max(stats["performance"])
         click.echo(f"\n  {'─' * 35}")
-        click.echo("  性能统计:")
-        click.echo(key_value("平均耗时", f"{avg_ms:.0f}ms"))
-        click.echo(key_value("最大耗时", f"{max_ms}ms"))
+        click.echo("  Performance:")
+        click.echo(key_value("Avg Latency", f"{avg_ms:.0f}ms"))
+        click.echo(key_value("Max Latency", f"{max_ms}ms"))
 
     if stats["api_errors"]:
         click.echo(f"\n  {'─' * 35}")
-        click.echo("  最近错误:")
+        click.echo("  Recent Errors:")
         for err in stats["api_errors"][-5:]:
             click.echo(click.style(f"    [{err['time']}] {err['status']} - {err['msg']}", fg="red"))
 

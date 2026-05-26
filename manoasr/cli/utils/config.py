@@ -1,5 +1,5 @@
 # coding=utf-8
-"""配置管理工具"""
+"""Configuration management utilities"""
 
 from __future__ import annotations
 

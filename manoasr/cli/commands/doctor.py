@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr doctor - 环境检查"""
+"""mano-asr doctor - environment check"""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def check_python() -> tuple[bool, str]:
     version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     if sys.version_info >= (3, 10):
         return True, f"Python {version}"
-    return False, f"Python {version} (需要 3.10+)"
+    return False, f"Python {version} (requires 3.10+)"
 
 
 def check_ffmpeg() -> tuple[bool, str]:
@@ -37,52 +37,52 @@ def check_ffmpeg() -> tuple[bool, str]:
                 for i, p in enumerate(parts):
                     if p.lower() == "version" and i + 1 < len(parts):
                         return True, f"ffmpeg {parts[i + 1]}"
-            return True, "ffmpeg (已安装)"
+            return True, "ffmpeg (installed)"
         except Exception:
-            return True, "ffmpeg (已安装)"
-    return False, "ffmpeg (未安装)"
+            return True, "ffmpeg (installed)"
+    return False, "ffmpeg (not installed)"
 
 
 def check_ffprobe() -> tuple[bool, str]:
     if shutil.which("ffprobe"):
-        return True, "ffprobe (已安装)"
-    return False, "ffprobe (未安装)"
+        return True, "ffprobe (installed)"
+    return False, "ffprobe (not installed)"
 
 
 def check_mlx() -> tuple[bool, str]:
     try:
         import mlx
 
-        version = getattr(mlx, "__version__", "未知版本")
+        version = getattr(mlx, "__version__", "unknown")
         return True, f"MLX {version}"
     except ImportError:
-        return False, "MLX (未安装)"
+        return False, "MLX (not installed)"
 
 
 def check_config() -> tuple[bool, str]:
     if config_exists():
-        return True, "配置文件存在"
-    return False, "配置文件不存在"
+        return True, "Config file exists"
+    return False, "Config file not found"
 
 
 def check_model(model_path: str, model_type: str) -> tuple[bool, str]:
     path = Path(model_path)
     if path.exists() and (path / "config.json").exists():
-        return True, f"{model_type} 模型: {path.name}"
-    return False, f"{model_type} 模型: {path.name} (不存在)"
+        return True, f"{model_type} model: {path.name}"
+    return False, f"{model_type} model: {path.name} (not found)"
 
 
 def check_port(port: int) -> tuple[bool, str]:
     if is_port_in_use(port):
-        return False, f"端口 {port} 已被占用"
-    return True, f"端口 {port} 可用"
+        return False, f"Port {port} is in use"
+    return True, f"Port {port} available"
 
 
 @click.command()
 def doctor():
-    """环境检查"""
+    """Environment check"""
 
-    print_header("环境检查")
+    print_header("Environment Check")
 
     all_passed = True
 
@@ -116,7 +116,7 @@ def doctor():
     check_and_notify()
 
     if all_passed:
-        click.echo(success("所有检查通过\n"))
+        click.echo(success("All checks passed\n"))
     else:
-        click.echo(warning("部分检查未通过，请根据提示修复\n"))
+        click.echo(warning("Some checks failed, please fix the issues above\n"))
         raise SystemExit(1)

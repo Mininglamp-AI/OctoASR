@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr 服务管理命令: start/stop/restart/status"""
+"""mano-asr service commands: start/stop/restart/status"""
 
 from __future__ import annotations
 
@@ -40,7 +40,6 @@ def get_configured_port() -> int:
 
 
 def _do_init() -> dict:
-    """执行初始化：下载模型（如需）并创建配置"""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -55,39 +54,38 @@ def _do_init() -> dict:
     save_config(config)
 
     asr_name = Path(config["models"]["asr"]).name
-    click.echo(success(f"自动初始化完成"))
-    click.echo(f"    ASR 模型: {asr_name}")
+    click.echo(success(f"Auto-initialization complete"))
+    click.echo(f"    ASR model: {asr_name}")
     if config["models"].get("vad"):
         vad_name = Path(config["models"]["vad"]).name
-        click.echo(f"    VAD 模型: {vad_name}")
-    click.echo(f"    服务端口: {config['server']['port']}")
+        click.echo(f"    VAD model: {vad_name}")
+    click.echo(f"    Port: {config['server']['port']}")
 
     return config
 
 
 def _check_service_health(port: int, timeout: float = 2.0) -> tuple[bool, str]:
-    """检查服务健康状态，返回 (是否健康, 状态描述)"""
     import socket
     try:
         with socket.create_connection(("127.0.0.1", port), timeout=timeout):
             pass
-        return True, "正常"
+        return True, "healthy"
     except socket.timeout:
-        return False, "响应超时"
+        return False, "timeout"
     except ConnectionRefusedError:
-        return False, "连接被拒绝"
+        return False, "connection refused"
     except Exception as e:
         return False, str(e)
 
 
 @click.command()
-@click.option("--foreground", "-f", is_flag=True, help="前台运行（调试用）")
-@click.option("--debug", "-d", is_flag=True, help="调试模式（记录转写结果到日志）")
+@click.option("--foreground", "-f", is_flag=True, help="Run in foreground (for debugging)")
+@click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 def start(foreground: bool, debug: bool):
-    """启动 mano-asr 服务（首次运行自动初始化）"""
+    """Start mano-asr service (auto-init on first run)"""
 
     if not config_exists():
-        click.echo(info("首次运行，正在初始化..."))
+        click.echo(info("First run, initializing..."))
         _do_init()
         click.echo("")
 
@@ -99,7 +97,7 @@ def start(foreground: bool, debug: bool):
         model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
         spec = MODEL_TYPES.get(model_type_key, {})
         model_name = spec.get("default_model", asr_path.name)
-        click.echo(info("ASR 模型不存在，正在下载..."))
+        click.echo(info("ASR model not found, downloading..."))
         asr_path = ensure_model(model_name, is_vad=False)
         config["models"]["asr"] = str(asr_path)
         save_config(config)
@@ -108,14 +106,14 @@ def start(foreground: bool, debug: bool):
     if vad_path_str:
         vad_path = Path(vad_path_str)
         if not vad_path.exists():
-            click.echo(info("VAD 模型不存在，正在下载..."))
+            click.echo(info("VAD model not found, downloading..."))
             try:
                 from manoasr.cli.utils.constants import DEFAULT_VAD_MODEL
                 vad_path = ensure_model(DEFAULT_VAD_MODEL, is_vad=True)
                 config["models"]["vad"] = str(vad_path)
                 save_config(config)
             except SystemExit:
-                click.echo(warning("VAD 模型不可用，继续启动（不使用 VAD）"))
+                click.echo(warning("VAD model unavailable, continuing without VAD"))
                 config["models"]["vad"] = None
                 save_config(config)
 
@@ -123,30 +121,30 @@ def start(foreground: bool, debug: bool):
     if pid:
         healthy, health_msg = _check_service_health(port)
         if healthy:
-            click.echo(warning(f"mano-asr 服务已在运行中 (PID: {pid})"))
+            click.echo(warning(f"mano-asr service is already running (PID: {pid})"))
             return
         else:
             port_info = get_port_process(port)
             if port_info and port_info[0] != pid:
-                click.echo(warning(f"服务进程存在 (PID: {pid}) 但端口被占用"))
-                click.echo(error(f"端口 {port} 被其他进程占用: {port_info[1]} (PID: {port_info[0]})"))
-                click.echo(f"\n    解决方法:")
-                click.echo(f"      1. 停止占用进程: kill {port_info[0]}")
-                click.echo(f"      2. 然后重启: mano-asr restart")
+                click.echo(warning(f"Service process exists (PID: {pid}) but port is occupied"))
+                click.echo(error(f"Port {port} is in use by: {port_info[1]} (PID: {port_info[0]})"))
+                click.echo(f"\n    Solution:")
+                click.echo(f"      1. Kill the process: kill {port_info[0]}")
+                click.echo(f"      2. Then restart: mano-asr restart")
                 raise SystemExit(1)
             else:
-                click.echo(warning(f"服务进程存在 (PID: {pid}) 但无响应，尝试重启..."))
+                click.echo(warning(f"Service process exists (PID: {pid}) but not responding, restarting..."))
                 stop_process(pid)
 
     if is_port_in_use(port):
         process_info = get_port_process(port)
-        click.echo(error(f"端口 {port} 已被占用"))
+        click.echo(error(f"Port {port} is already in use"))
         if process_info:
             pid, name = process_info
-            click.echo(f"    占用进程: {name} (PID: {pid})")
-        click.echo(f"\n    解决方法:")
-        click.echo(f"      1. 停止占用进程: kill {process_info[0] if process_info else '<PID>'}")
-        click.echo(f"      2. 或更换端口: mano-asr port <新端口>")
+            click.echo(f"    Process: {name} (PID: {pid})")
+        click.echo(f"\n    Solution:")
+        click.echo(f"      1. Kill the process: kill {process_info[0] if process_info else '<PID>'}")
+        click.echo(f"      2. Or change port: mano-asr port <port>")
         raise SystemExit(1)
 
     if foreground:
@@ -159,18 +157,17 @@ def start(foreground: bool, debug: bool):
 
 
 def _run_server(config: dict, port: int, debug: bool = False):
-    """前台运行服务"""
     model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
-    click.echo(success("mano-asr 服务已启动（前台模式）"))
-    click.echo(f"    地址: http://127.0.0.1:{port}")
-    click.echo(f"    引擎: {model_type_key} ({spec.get('label', model_type_key)})")
-    click.echo(f"    模型: {asr_name}")
+    click.echo(success("mano-asr service started (foreground)"))
+    click.echo(f"    Address: http://127.0.0.1:{port}")
+    click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
+    click.echo(f"    Model:   {asr_name}")
     if debug:
-        click.echo(f"    调试模式: 开启")
-    click.echo(f"    按 Ctrl+C 停止\n")
+        click.echo(f"    Debug:   enabled")
+    click.echo(f"    Press Ctrl+C to stop\n")
 
     import uvicorn
 
@@ -196,7 +193,6 @@ def _run_server(config: dict, port: int, debug: bool = False):
 
 
 def _start_daemon(config: dict, port: int, debug: bool = False):
-    """后台启动服务"""
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     daemon_path = Path(__file__).parent.parent / "daemon.py"
@@ -236,88 +232,88 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
-    click.echo(success("mano-asr 服务已启动"))
-    click.echo(f"    地址: http://127.0.0.1:{port}")
-    click.echo(f"    PID:  {process.pid}")
-    click.echo(f"    引擎: {model_type_key} ({spec.get('label', model_type_key)})")
-    click.echo(f"    模型: {asr_name}")
+    click.echo(success("mano-asr service started"))
+    click.echo(f"    Address: http://127.0.0.1:{port}")
+    click.echo(f"    PID:     {process.pid}")
+    click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
+    click.echo(f"    Model:   {asr_name}")
     if debug:
-        click.echo(f"    调试模式: 开启")
+        click.echo(f"    Debug:   enabled")
 
 
 @click.command()
 def stop():
-    """停止 mano-asr 服务"""
+    """Stop mano-asr service"""
 
     pid = get_pid()
     if not pid:
-        click.echo(warning("mano-asr 服务未在运行"))
+        click.echo(warning("mano-asr service is not running"))
         return
 
-    click.echo(info("正在停止服务..."))
+    click.echo(info("Stopping service..."))
 
     if stop_process(pid):
-        click.echo(success("mano-asr 服务已停止"))
+        click.echo(success("mano-asr service stopped"))
     else:
-        click.echo(error(f"无法停止进程 {pid}，请手动终止: kill -9 {pid}"))
+        click.echo(error(f"Failed to stop process {pid}, please kill manually: kill -9 {pid}"))
         raise SystemExit(1)
 
 
 @click.command()
-@click.option("--debug", "-d", is_flag=True, help="调试模式（记录转写结果到日志）")
+@click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 @click.pass_context
 def restart(ctx, debug: bool):
-    """重启 mano-asr 服务"""
+    """Restart mano-asr service"""
 
     pid = get_pid()
     if pid:
-        click.echo(info("停止服务..."))
+        click.echo(info("Stopping service..."))
         if not stop_process(pid):
-            click.echo(error("无法停止服务"))
+            click.echo(error("Failed to stop service"))
             raise SystemExit(1)
-        click.echo(success("服务已停止"))
+        click.echo(success("Service stopped"))
 
-    click.echo(info("启动服务..."))
+    click.echo(info("Starting service..."))
     ctx.invoke(start, foreground=False, debug=debug)
 
 
 @click.command()
 def status():
-    """查看 mano-asr 服务状态"""
+    """Show mano-asr service status"""
 
-    print_header("mano-asr 服务状态")
+    print_header("mano-asr Service Status")
 
     pid = get_pid()
     port = get_configured_port()
 
     if pid:
-        uptime = get_process_uptime(pid) or "未知"
+        uptime = get_process_uptime(pid) or "unknown"
         healthy, health_msg = _check_service_health(port)
 
         if healthy:
-            click.echo(key_value("状态", bold("运行中")))
+            click.echo(key_value("Status", bold("running")))
         else:
-            click.echo(key_value("状态", warning(f"异常 ({health_msg})")))
+            click.echo(key_value("Status", warning(f"unhealthy ({health_msg})")))
             port_info = get_port_process(port)
             if port_info and port_info[0] != pid:
-                click.echo(warning(f"  ⚠ 端口 {port} 被其他进程占用: {port_info[1]} (PID: {port_info[0]})"))
-                click.echo(info(f"    建议: mano-asr restart 或 kill {port_info[0]}"))
+                click.echo(warning(f"  Port {port} is in use by: {port_info[1]} (PID: {port_info[0]})"))
+                click.echo(info(f"    Suggestion: mano-asr restart or kill {port_info[0]}"))
 
         click.echo(key_value("PID", str(pid)))
-        click.echo(key_value("端口", str(port)))
-        click.echo(key_value("运行时间", uptime))
+        click.echo(key_value("Port", str(port)))
+        click.echo(key_value("Uptime", uptime))
 
         if config_exists():
             config = load_config()
             model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
             spec = MODEL_TYPES.get(model_type_key, {})
             click.echo(f"  {'─' * 35}")
-            click.echo(key_value("引擎", f"{model_type_key} ({spec.get('label', model_type_key)})"))
-            click.echo(key_value("ASR 模型", Path(config["models"]["asr"]).name))
+            click.echo(key_value("Engine", f"{model_type_key} ({spec.get('label', model_type_key)})"))
+            click.echo(key_value("ASR Model", Path(config["models"]["asr"]).name))
             if config["models"].get("vad"):
-                click.echo(key_value("VAD 模型", Path(config["models"]["vad"]).name))
+                click.echo(key_value("VAD Model", Path(config["models"]["vad"]).name))
     else:
-        click.echo(key_value("状态", "未运行"))
+        click.echo(key_value("Status", "not running"))
 
     print_footer()
 

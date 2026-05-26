@@ -1,5 +1,5 @@
 # coding=utf-8
-"""进程管理工具"""
+"""Process management utilities"""
 
 from __future__ import annotations
 
@@ -60,17 +60,17 @@ def format_uptime(etime: str) -> str:
 
     if len(parts) == 2:
         mins, secs = parts
-        return f"{mins} 分钟"
+        return f"{mins}m"
     elif len(parts) == 3:
         hours, mins, secs = parts
         if hours > 0:
-            return f"{hours} 小时 {mins} 分钟"
-        return f"{mins} 分钟"
+            return f"{hours}h {mins}m"
+        return f"{mins}m"
     elif len(parts) == 4:
         days, hours, mins, secs = parts
         if days > 0:
-            return f"{days} 天 {hours} 小时"
-        return f"{hours} 小时 {mins} 分钟"
+            return f"{days}d {hours}h"
+        return f"{hours}h {mins}m"
 
     return etime
 
