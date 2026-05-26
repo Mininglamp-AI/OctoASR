@@ -43,13 +43,13 @@ ALLOWED_EXTENSIONS = {".wav", ".mp3", ".ogg", ".webm", ".m4a", ".flac"}
 HF_REPO_MAP = {
     "Fun-ASR-Nano-2512-8bit": "mlx-community/Fun-ASR-Nano-2512-8bit",
     "Qwen3-ASR-1_7B-8bit": "mlx-community/Qwen3-ASR-1_7B-8bit",
-    "fsmn-vad-mlx": "mano-asr/fsmn-vad-mlx",
+    "fsmn-vad-mlx": "Mininglamp-2718/fsmn-vad-mlx",
 }
 
 MODELSCOPE_REPO_MAP = {
     "Fun-ASR-Nano-2512-8bit": "luosir001/Fun-ASR-Nano-2512-8bit",
     "Qwen3-ASR-1_7B-8bit": "luosir001/Qwen3-ASR-1_7B-8bit",
-    "fsmn-vad-mlx": "PLACEHOLDER_MODELSCOPE_REPO_ID",
+    "fsmn-vad-mlx": "Mininglamp2718/fsmn-vad-mlx",
 }
 
 GITHUB_RELEASE_BASE_URL = "https://github.com/Mininglamp-AI/mano-asr/releases/download"
