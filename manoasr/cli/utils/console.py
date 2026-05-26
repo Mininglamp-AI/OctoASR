@@ -1,5 +1,5 @@
 # coding=utf-8
-"""控制台输出工具"""
+"""Console output utilities"""
 
 from __future__ import annotations
 
@@ -65,7 +65,7 @@ def interactive_select(title: str, options: list[dict], current: str | None = No
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
 
-    total_lines = len(options) + 5
+    menu_lines = len(options) + 4
 
     def _read_key() -> str:
         ch = sys.stdin.read(1)
@@ -82,35 +82,31 @@ def interactive_select(title: str, options: list[dict], current: str | None = No
             return "ctrl-c"
         return ch
 
-    def _save_cursor() -> None:
-        sys.stdout.write("\0337")
-        sys.stdout.flush()
-
-    def _restore_and_clear() -> None:
-        sys.stdout.write("\0338")
-        sys.stdout.write(f"\033[J")
-        sys.stdout.flush()
-
     def _render(sel: int) -> None:
         lines = []
         lines.append(f"\r\n  {title}")
-        lines.append(f"\r\n  {divider()}")
+        lines.append(f"  {divider()}")
         for i, opt in enumerate(options):
             label = opt.get("label", opt["key"])
             marker = "›" if i == sel else " "
-            tag = " (当前)" if opt["key"] == current else ""
+            tag = " (active)" if opt["key"] == current else ""
             highlight = "\033[1m" if i == sel else ""
             reset = "\033[0m" if i == sel else ""
-            lines.append(f"\r\n  {marker} {highlight}{label}{tag}{reset}")
-        lines.append(f"\r\n  {divider()}")
-        lines.append(f"\r\n  ↑↓ 选择  Enter 确认  q 取消")
-        sys.stdout.write("".join(lines))
+            lines.append(f"  {marker} {highlight}{label}{tag}{reset}")
+        lines.append(f"  {divider()}")
+        lines.append(f"  ↑↓ select  Enter confirm  q cancel")
+        sys.stdout.write("\r\n".join(lines))
+        sys.stdout.flush()
+
+    def _clear_menu() -> None:
+        sys.stdout.write(f"\r\033[{menu_lines}A")
+        sys.stdout.write(f"\033[J")
         sys.stdout.flush()
 
     try:
         tty.setcbreak(fd)
+        sys.stdout.write("\033[?25l")
 
-        _save_cursor()
         _render(selected)
 
         while True:
@@ -120,13 +116,21 @@ def interactive_select(title: str, options: list[dict], current: str | None = No
             elif key == "down":
                 selected = (selected + 1) % len(options)
             elif key == "enter":
-                _restore_and_clear()
+                _clear_menu()
+                sys.stdout.write("\033[?25h")
+                sys.stdout.flush()
                 return options[selected]
             elif key in ("ctrl-c", "esc", "q"):
-                _restore_and_clear()
+                _clear_menu()
+                sys.stdout.write("\033[?25h")
+                sys.stdout.flush()
                 return None
+            else:
+                continue
 
-            _restore_and_clear()
+            _clear_menu()
             _render(selected)
     finally:
+        sys.stdout.write("\033[?25h")
+        sys.stdout.flush()
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""后台服务守护进程"""
+"""Background service daemon"""
 
 import argparse
 import signal
@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--model-type", default="auto", choices=["auto", "funasr", "qwen3_asr"])
     parser.add_argument("--load-on-startup", action="store_true")
-    parser.add_argument("--debug", action="store_true", help="启用调试模式")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()
 
     signal.signal(signal.SIGTERM, signal_handler)

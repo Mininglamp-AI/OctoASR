@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr port - 端口管理"""
+"""mano-asr port - port management"""
 
 from __future__ import annotations
 
@@ -13,33 +13,33 @@ from manoasr.cli.utils.constants import DEFAULT_PORT
 @click.command()
 @click.argument("new_port", type=int, required=False)
 def port(new_port: int):
-    """端口管理
+    """Port management
 
     \b
-    查看当前端口:
+    View current port:
       mano-asr port
 
     \b
-    设置新端口:
+    Set new port:
       mano-asr port 9000
     """
     if not config_exists():
-        click.echo(error("未初始化，请先运行: mano-asr init"))
+        click.echo(error("Not initialized, please run: mano-asr start"))
         raise SystemExit(1)
 
     config = load_config()
     current_port = config.get("server", {}).get("port", DEFAULT_PORT)
 
     if new_port is None:
-        click.echo(f"\n  当前服务端口: {current_port}\n")
+        click.echo(f"\n  Current port: {current_port}\n")
         return
 
     if new_port < 1024 or new_port > 65535:
-        click.echo(error("端口号必须在 1024-65535 之间"))
+        click.echo(error("Port must be between 1024-65535"))
         raise SystemExit(1)
 
     if new_port == current_port:
-        click.echo(info(f"端口未变化，仍为: {current_port}"))
+        click.echo(info(f"Port unchanged: {current_port}"))
         return
 
     if "server" not in config:
@@ -47,5 +47,5 @@ def port(new_port: int):
     config["server"]["port"] = new_port
     save_config(config)
 
-    click.echo(success(f"端口已更改: {current_port} → {new_port}"))
-    click.echo(warning("需要重启服务生效: mano-asr restart"))
+    click.echo(success(f"Port changed: {current_port} -> {new_port}"))
+    click.echo(warning("Restart required to take effect: mano-asr restart"))

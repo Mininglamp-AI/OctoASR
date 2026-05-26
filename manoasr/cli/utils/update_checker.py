@@ -1,5 +1,5 @@
 # coding=utf-8
-"""更新检查 — 检测 CLI 新版本和模型更新"""
+"""Update checker - detect new CLI versions and model updates"""
 
 from __future__ import annotations
 
@@ -48,7 +48,6 @@ def _should_check(cache: dict) -> bool:
 
 
 def _compare_versions(current: str, latest: str) -> bool:
-    """如果 latest > current 返回 True"""
     try:
         cur = tuple(int(x) for x in current.split("."))
         lat = tuple(int(x) for x in latest.split("."))
@@ -95,7 +94,6 @@ def _get_installed_model_names() -> list[str]:
 
 
 def record_model_sha(model_name: str, repo_id: str) -> None:
-    """下载模型后调用，记录当前 SHA 作为基线"""
     try:
         sha = _fetch_model_sha(repo_id)
         if not sha:
@@ -109,7 +107,6 @@ def record_model_sha(model_name: str, repo_id: str) -> None:
 
 
 def check_and_notify() -> None:
-    """检查更新并输出提醒（静默失败）"""
     try:
         _do_check_and_notify()
     except Exception:
@@ -150,8 +147,8 @@ def _do_check_and_notify() -> None:
     cli_info = cache.get("cli", {})
     latest = cli_info.get("latest_version")
     if latest and _compare_versions(VERSION, latest):
-        messages.append(warning(f"新版本可用: mano-asr {latest} (当前: {VERSION})"))
-        messages.append(info("更新: brew upgrade mano-asr"))
+        messages.append(warning(f"New version available: mano-asr {latest} (current: {VERSION})"))
+        messages.append(info("Update: brew upgrade mano-asr"))
 
     models_cache = cache.get("models", {})
     updated_models = []
@@ -163,8 +160,8 @@ def _do_check_and_notify() -> None:
 
     if updated_models:
         names = ", ".join(updated_models)
-        messages.append(warning(f"模型更新可用: {names}"))
-        messages.append(info("重新下载模型: mano-asr stop && mano-asr start"))
+        messages.append(warning(f"Model update available: {names}"))
+        messages.append(info("Re-download: mano-asr stop && mano-asr start"))
 
     if messages:
         click.echo(f"\n  {divider()}")

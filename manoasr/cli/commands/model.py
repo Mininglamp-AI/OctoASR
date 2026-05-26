@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr model - 模型管理"""
+"""mano-asr model - model management"""
 
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ def switch_engine(config: dict, engine_key: str) -> None:
 
     model_path = resolve_model_path(spec["default_model"])
     if not model_path:
-        click.echo(info(f"正在下载 {spec['label']} 模型..."))
+        click.echo(info(f"Downloading {spec['label']} model..."))
         from manoasr.cli.utils.download import ensure_model
         model_path = ensure_model(spec["default_model"], is_vad=False)
 
@@ -82,9 +82,9 @@ def restart_service_if_running() -> None:
     if not pid:
         return
 
-    click.echo(info("正在重启服务..."))
+    click.echo(info("Restarting service..."))
     if not stop_process(pid):
-        click.echo(warning("无法停止服务，请手动重启: mano-asr restart"))
+        click.echo(warning("Failed to stop service, please restart manually: mano-asr restart"))
         return
 
     from manoasr.cli.commands.service import _start_daemon, get_configured_port
@@ -98,12 +98,12 @@ def restart_service_if_running() -> None:
 @click.group(invoke_without_command=True)
 @click.pass_context
 def model(ctx):
-    """模型管理"""
+    """Model management"""
     if ctx.invoked_subcommand is not None:
         return
 
     if not config_exists():
-        click.echo(error("未初始化，请先运行: mano-asr start"))
+        click.echo(error("Not initialized, please run: mano-asr start"))
         raise SystemExit(1)
 
     config = load_config()
@@ -114,45 +114,45 @@ def model(ctx):
         for key, spec in MODEL_TYPES.items()
     ]
 
-    chosen = interactive_select("选择 ASR 引擎", options, current=current)
+    chosen = interactive_select("Select ASR Engine", options, current=current)
 
     if chosen is None or chosen["key"] == current:
         return
 
     switch_engine(config, chosen["key"])
     spec = MODEL_TYPES[chosen["key"]]
-    click.echo(success(f"已切换 ASR 引擎: {chosen['key']} ({spec['label']})"))
+    click.echo(success(f"Switched ASR engine: {chosen['key']} ({spec['label']})"))
     restart_service_if_running()
 
 
 @model.command("info")
 def model_info():
-    """显示当前模型信息"""
+    """Show current model info"""
 
     if not config_exists():
-        click.echo(error("未初始化，请先运行: mano-asr start"))
+        click.echo(error("Not initialized, please run: mano-asr start"))
         raise SystemExit(1)
 
     config = load_config()
     current_type = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(current_type, {})
 
-    print_header("当前模型配置")
-    click.echo(f"  引擎:  {current_type} ({spec.get('label', current_type)})")
+    print_header("Current Model Config")
+    click.echo(f"  Engine: {current_type} ({spec.get('label', current_type)})")
     click.echo(f"  ASR:  {Path(config['models']['asr']).name}")
     if config["models"].get("vad"):
         click.echo(f"  VAD:  {Path(config['models']['vad']).name}")
     else:
-        click.echo(f"  VAD:  未启用")
+        click.echo(f"  VAD:  disabled")
     print_footer()
 
 
 @model.command("list")
 def model_list():
-    """列出可用模型"""
+    """List available models"""
 
     if not config_exists():
-        click.echo(error("未初始化，请先运行: mano-asr start"))
+        click.echo(error("Not initialized, please run: mano-asr start"))
         raise SystemExit(1)
 
     config = load_config()
@@ -162,25 +162,25 @@ def model_list():
 
     models = get_available_models()
 
-    print_header("可用模型")
+    print_header("Available Models")
 
-    click.echo(f"  当前引擎: {current_type}")
+    click.echo(f"  Engine: {current_type}")
     click.echo("")
 
-    click.echo("  ASR 模型:")
+    click.echo("  ASR Models:")
     if models["asr"]:
         for name, path in models["asr"]:
             marker = "*" if name == current_asr else " "
-            suffix = " (当前)" if name == current_asr else ""
+            suffix = " (active)" if name == current_asr else ""
             click.echo(f"    {marker} {name}{suffix}")
     else:
-        click.echo("    (无)")
+        click.echo("    (none)")
 
     if models["vad"]:
-        click.echo("\n  VAD 模型:")
+        click.echo("\n  VAD Models:")
         for name, path in models["vad"]:
             marker = "*" if name == current_vad else " "
-            suffix = " (当前)" if name == current_vad else ""
+            suffix = " (active)" if name == current_vad else ""
             click.echo(f"    {marker} {name}{suffix}")
 
     print_footer()
@@ -190,20 +190,20 @@ def model_list():
 @click.argument("model_name")
 @click.option("--type", "-t", "model_type", type=click.Choice(["asr", "vad"]), default=None)
 def model_use(model_name: str, model_type: str):
-    """切换模型
+    """Switch model
 
-    MODEL_NAME: 模型名称或引擎类型 (funasr / qwen3-asr)
+    MODEL_NAME: Model name or engine type (funasr / qwen3-asr)
     """
 
     if not config_exists():
-        click.echo(error("未初始化，请先运行: mano-asr start"))
+        click.echo(error("Not initialized, please run: mano-asr start"))
         raise SystemExit(1)
 
     if model_name in MODEL_TYPES:
         config = load_config()
         switch_engine(config, model_name)
         spec = MODEL_TYPES[model_name]
-        click.echo(success(f"已切换 ASR 引擎: {model_name} ({spec['label']})"))
+        click.echo(success(f"Switched ASR engine: {model_name} ({spec['label']})"))
         restart_service_if_running()
         return
 
@@ -232,8 +232,8 @@ def model_use(model_name: str, model_type: str):
                 break
 
     if not found_path:
-        click.echo(error(f"未找到模型: {model_name}"))
-        click.echo(info("运行 mano-asr model list 查看可用模型"))
+        click.echo(error(f"Model not found: {model_name}"))
+        click.echo(info("Run 'mano-asr model list' to see available models"))
         raise SystemExit(1)
 
     config = load_config()
@@ -241,5 +241,5 @@ def model_use(model_name: str, model_type: str):
     save_config(config)
 
     type_name = "ASR" if found_type == "asr" else "VAD"
-    click.echo(success(f"已切换 {type_name} 模型: {model_name}"))
-    click.echo(warning("需要重启服务生效: mano-asr restart"))
+    click.echo(success(f"Switched {type_name} model: {model_name}"))
+    click.echo(warning("Restart required to take effect: mano-asr restart"))

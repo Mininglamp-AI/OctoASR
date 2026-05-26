@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr config - 配置管理"""
+"""mano-asr config - configuration management"""
 
 from __future__ import annotations
 
@@ -19,22 +19,22 @@ import yaml
 
 @click.group()
 def config():
-    """配置管理"""
+    """Configuration management"""
     pass
 
 
 @config.command("show")
 def config_show():
-    """显示当前配置"""
+    """Show current configuration"""
 
     if not config_exists():
-        click.echo(error("未初始化，请先运行: mano-asr start"))
+        click.echo(error("Not initialized, please run: mano-asr start"))
         raise SystemExit(1)
 
     current_config = load_config()
 
-    click.echo(f"\n  配置文件: {CONFIG_FILE}")
-    print_header("配置内容")
+    click.echo(f"\n  Config file: {CONFIG_FILE}")
+    print_header("Configuration")
 
     yaml_str = yaml.dump(current_config, allow_unicode=True, default_flow_style=False)
     for line in yaml_str.strip().split("\n"):
@@ -44,14 +44,14 @@ def config_show():
 
 
 @config.command("reset")
-@click.option("--yes", "-y", is_flag=True, help="跳过确认")
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation")
 def config_reset(yes: bool):
-    """重置为默认配置"""
+    """Reset to default configuration"""
 
     if not yes:
-        click.confirm("确定要重置配置吗？", abort=True)
+        click.confirm("Are you sure you want to reset the configuration?", abort=True)
 
     default_config = get_default_config()
     save_config(default_config)
 
-    click.echo(success("配置已重置为默认值"))
+    click.echo(success("Configuration reset to defaults"))

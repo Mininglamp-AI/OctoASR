@@ -1,5 +1,5 @@
 # coding=utf-8
-"""常量定义"""
+"""Constants"""
 
 from pathlib import Path
 
