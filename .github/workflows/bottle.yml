@@ -1,0 +1,216 @@
+name: Build Homebrew Bottles
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      source_sha256: ${{ steps.source.outputs.sha256 }}
+    steps:
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download source tarball and compute SHA256
+        id: source
+        run: |
+          curl -sL "https://github.com/${{ github.repository }}/archive/refs/tags/${GITHUB_REF_NAME}.tar.gz" -o source.tar.gz
+          SHA256=$(sha256sum source.tar.gz | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            --draft
+
+  bottle:
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - os: macos-15
+            tag: arm64_sequoia
+          - os: macos-14
+            tag: arm64_sonoma
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Tap and prepare formula
+        env:
+          VERSION: ${{ needs.create-release.outputs.version }}
+          SOURCE_SHA256: ${{ needs.create-release.outputs.source_sha256 }}
+          TAG_NAME: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          brew tap Mininglamp-AI/tap
+          FORMULA_PATH="$(brew --repo Mininglamp-AI/tap)/Formula/mano-asr.rb"
+
+          sed -i '' "s|url \".*\"|url \"https://github.com/${REPO}/archive/refs/tags/${TAG_NAME}.tar.gz\"|" "$FORMULA_PATH"
+          sed -i '' "s|sha256 \"[0-9a-f]*\"|sha256 \"${SOURCE_SHA256}\"|" "$FORMULA_PATH"
+          sed -i '' '/^[[:space:]]*bottle do$/,/^[[:space:]]*end$/d' "$FORMULA_PATH"
+          sed -i '' "s|assert_match \".*\"|assert_match \"${VERSION}\"|" "$FORMULA_PATH"
+
+          echo "=== Updated formula ==="
+          cat "$FORMULA_PATH"
+
+      - name: Install formula with bottle build
+        run: |
+          brew install --build-bottle Mininglamp-AI/tap/mano-asr
+
+      - name: Build bottle
+        run: |
+          brew bottle --no-rebuild --json Mininglamp-AI/tap/mano-asr
+
+      - name: Rename and get bottle info
+        id: bottle_info
+        run: |
+          for f in mano-asr--*.bottle.tar.gz; do
+            NEW_NAME="${f//--/-}"
+            mv "$f" "$NEW_NAME"
+          done
+          BOTTLE_FILE=$(ls mano-asr-*.bottle.tar.gz)
+          SHA256=$(shasum -a 256 "$BOTTLE_FILE" | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "filename=$BOTTLE_FILE" >> "$GITHUB_OUTPUT"
+          echo "Bottle: $BOTTLE_FILE (SHA256: $SHA256)"
+
+      - name: Upload bottle to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            "${{ steps.bottle_info.outputs.filename }}"
+
+  update-tap:
+    needs: [create-release, bottle]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download bottles and collect SHA256
+        id: collect
+        env:
+          VERSION: ${{ needs.create-release.outputs.version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "v${VERSION}" \
+            --repo "${{ github.repository }}" \
+            --pattern "*.bottle.tar.gz" \
+            --dir ./bottles
+
+          cd bottles
+          for tag in arm64_sequoia arm64_sonoma; do
+            FILE="mano-asr-${VERSION}.${tag}.bottle.tar.gz"
+            SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
+            echo "${tag}_sha256=$SHA" >> "$GITHUB_OUTPUT"
+            echo "${tag}: $SHA"
+          done
+
+      - name: Generate and push formula
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ needs.create-release.outputs.version }}
+          SOURCE_SHA256: ${{ needs.create-release.outputs.source_sha256 }}
+          SEQUOIA_SHA256: ${{ steps.collect.outputs.arm64_sequoia_sha256 }}
+          SONOMA_SHA256: ${{ steps.collect.outputs.arm64_sonoma_sha256 }}
+        run: |
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/Mininglamp-AI/homebrew-tap.git" tap-repo
+          cd tap-repo
+
+          cat > Formula/mano-asr.rb << EOF
+          class ManoAsr < Formula
+            desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
+            homepage "https://github.com/Mininglamp-AI/mano-asr"
+            url "https://github.com/Mininglamp-AI/mano-asr/archive/refs/tags/v${VERSION}.tar.gz"
+            sha256 "${SOURCE_SHA256}"
+            license "MIT"
+
+            bottle do
+              root_url "https://github.com/Mininglamp-AI/mano-asr/releases/download/v${VERSION}"
+              sha256 cellar: :any_skip_relocation, arm64_sequoia: "${SEQUOIA_SHA256}"
+              sha256 cellar: :any_skip_relocation, arm64_sonoma: "${SONOMA_SHA256}"
+            end
+
+            depends_on "ffmpeg"
+            depends_on "python@3.13"
+            depends_on :macos => :monterey
+            depends_on :arch => :arm64
+
+            def install
+              venv = libexec/"venv"
+              system Formula["python@3.13"].opt_bin/"python3.13", "-m", "venv", venv
+              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--upgrade", "pip"
+              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath
+
+              site_packages = Dir[venv/"lib/python*/site-packages"].first
+              cp_r "core", site_packages
+              cp_r "utils", site_packages
+              cp "server.py", site_packages
+
+              (bin/"mano-asr").write <<~SH
+                #!/bin/bash
+                SCRIPT_PATH="\$0"
+                if [ -L "\$0" ]; then
+                    SCRIPT_PATH="\$(readlink -f "\$0" 2>/dev/null || readlink "\$0")"
+                fi
+                FORMULA_PREFIX="\$(cd "\$(dirname "\$SCRIPT_PATH")/.." && pwd)"
+                exec "\${FORMULA_PREFIX}/libexec/venv/bin/python3" -m manoasr.cli.main "\$@"
+              SH
+              chmod 0755, bin/"mano-asr"
+            end
+
+            def caveats
+              <<~EOS
+                mano-asr installed successfully!
+
+                Models will be downloaded automatically on first run (~1-2 GB).
+
+                Quick start:
+                  mano-asr start              # Start service (auto-downloads models on first run)
+                  mano-asr transcribe a.wav   # Transcribe audio
+                  mano-asr model list         # List models
+
+                Service management:
+                  mano-asr start / stop / restart / status
+
+                Model storage: ~/.mano-asr/models/
+                Service address: http://127.0.0.1:8787
+              EOS
+            end
+
+            test do
+              assert_match "${VERSION}", shell_output("#{bin}/mano-asr --version")
+            end
+          end
+          EOF
+
+          echo "=== Generated formula ==="
+          cat Formula/mano-asr.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/mano-asr.rb
+          git commit -m "Update mano-asr to ${VERSION}"
+          git push
+
+      - name: Publish Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --draft=false
