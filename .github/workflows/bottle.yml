@@ -48,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@main
 
       - name: Tap and prepare formula
         env:
@@ -63,7 +63,7 @@ jobs:
           sed -i '' "s|url \".*\"|url \"https://github.com/${REPO}/archive/refs/tags/${TAG_NAME}.tar.gz\"|" "$FORMULA_PATH"
           sed -i '' "s|sha256 \"[0-9a-f]*\"|sha256 \"${SOURCE_SHA256}\"|" "$FORMULA_PATH"
           sed -i '' '/^[[:space:]]*bottle do$/,/^[[:space:]]*end$/d' "$FORMULA_PATH"
-          sed -i '' "s|assert_match \".*\"|assert_match \"${VERSION}\"|" "$FORMULA_PATH"
+          sed -i '' "s|assert_match \"[0-9.]*\"|assert_match \"${VERSION}\"|" "$FORMULA_PATH"
 
           echo "=== Updated formula ==="
           cat "$FORMULA_PATH"
