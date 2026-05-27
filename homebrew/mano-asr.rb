@@ -1,12 +1,12 @@
 class ManoAsr < Formula
   desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
   homepage "https://github.com/Mininglamp-AI/mano-asr"
-  url "https://github.com/Mininglamp-AI/mano-asr/archive/refs/tags/v0.1.1.tar.gz"
+  url "https://github.com/Mininglamp-AI/mano-asr/archive/refs/tags/v0.1.3.tar.gz"
   sha256 "409210c026895359598dbc8de9cf5f06ff23c9a2e5866d0f140d01e984f88d86"
   license "MIT"
 
   bottle do
-    root_url "https://github.com/Mininglamp-AI/mano-asr/releases/download/v0.1.1"
+    root_url "https://github.com/Mininglamp-AI/mano-asr/releases/download/v0.1.3"
     sha256 cellar: :any_skip_relocation, arm64_tahoe: "ec5fbe2acd69b36053bbd56d8fdfcd644879cb201785641f93988f4b2a7cb39d"
   end
 
@@ -58,6 +58,6 @@ class ManoAsr < Formula
   end
 
   test do
-    assert_match "0.1.1", shell_output("#{bin}/mano-asr --version")
+    assert_match "0.1.3", shell_output("#{bin}/mano-asr --version")
   end
 end

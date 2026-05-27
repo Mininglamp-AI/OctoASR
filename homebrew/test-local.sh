@@ -53,7 +53,7 @@ FAIL=0
 
 # 版本检查
 VERSION_OUTPUT=$(mano-asr --version 2>&1 || true)
-if echo "$VERSION_OUTPUT" | grep -q "0.1.1"; then
+if echo "$VERSION_OUTPUT" | grep -q "0.1.3"; then
     echo "    ✓ mano-asr --version"
     PASS=$((PASS + 1))
 else
