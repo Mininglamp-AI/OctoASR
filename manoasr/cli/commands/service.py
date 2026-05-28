@@ -94,29 +94,26 @@ def start(foreground: bool, debug: bool):
     port = config.get("server", {}).get("port", DEFAULT_PORT)
 
     asr_path = Path(config.get("models", {}).get("asr", ""))
-    if not asr_path.exists() or not (asr_path / "config.json").exists():
-        model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
-        spec = MODEL_TYPES.get(model_type_key, {})
-        model_name = spec.get("default_model", asr_path.name)
-        click.echo(info("ASR model not found, downloading..."))
+    model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
+    spec = MODEL_TYPES.get(model_type_key, {})
+    model_name = spec.get("default_model", asr_path.name)
+    if not find_model_in_dirs(model_name, is_vad=False):
+        click.echo(info("ASR model not found or incomplete, downloading..."))
         asr_path = ensure_model(model_name, is_vad=False)
         config["models"]["asr"] = str(asr_path)
         save_config(config)
 
-    vad_path_str = config.get("models", {}).get("vad")
-    if vad_path_str:
-        vad_path = Path(vad_path_str)
-        if not vad_path.exists():
-            click.echo(info("VAD model not found, downloading..."))
-            try:
-                from manoasr.cli.utils.constants import DEFAULT_VAD_MODEL
-                vad_path = ensure_model(DEFAULT_VAD_MODEL, is_vad=True)
-                config["models"]["vad"] = str(vad_path)
-                save_config(config)
-            except SystemExit:
-                click.echo(warning("VAD model unavailable, continuing without VAD"))
-                config["models"]["vad"] = None
-                save_config(config)
+    from manoasr.cli.utils.constants import DEFAULT_VAD_MODEL
+    if not find_model_in_dirs(DEFAULT_VAD_MODEL, is_vad=True):
+        click.echo(info("VAD model not found or incomplete, downloading..."))
+        try:
+            vad_path = ensure_model(DEFAULT_VAD_MODEL, is_vad=True)
+            config["models"]["vad"] = str(vad_path)
+            save_config(config)
+        except SystemExit:
+            click.echo(warning("VAD model unavailable, continuing without VAD"))
+            config["models"]["vad"] = None
+            save_config(config)
 
     pid = get_pid()
     if pid:
