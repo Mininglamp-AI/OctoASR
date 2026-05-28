@@ -23,8 +23,6 @@ dependencies = [
     "modelscope",
     "tqdm",
     "soundfile",
-    "torch",
-    "torchaudio",
 ]
 
 [project.scripts]
