@@ -28,6 +28,9 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
+    from manoasr.cli.utils.torch_deps import add_torch_to_path
+    add_torch_to_path()
+
     sys.path.insert(0, str(PROJECT_ROOT))
 
     import server

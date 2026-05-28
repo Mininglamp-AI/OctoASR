@@ -90,6 +90,8 @@ def _transcribe_directly(audio_path: Path, hotwords: str, output_format: str) ->
     config = load_config()
 
     from manoasr.cli.utils.constants import PROJECT_ROOT
+    from manoasr.cli.utils.torch_deps import add_torch_to_path
+    add_torch_to_path()
 
     sys.path.insert(0, str(PROJECT_ROOT))
 
