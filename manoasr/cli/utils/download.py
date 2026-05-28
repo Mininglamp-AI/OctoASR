@@ -319,9 +319,6 @@ def ensure_default_models(model_type_key: str) -> tuple[Path, Optional[Path]]:
     vad_path = None
     try:
         vad_path = ensure_model(DEFAULT_VAD_MODEL, is_vad=True)
-        from .torch_deps import ensure_torch
-        if not ensure_torch():
-            click.echo(warning("VAD dependencies not available, VAD may not work"))
     except SystemExit:
         click.echo(warning("VAD model not available, continuing without VAD"))
 

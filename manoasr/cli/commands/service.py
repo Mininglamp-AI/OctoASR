@@ -23,7 +23,6 @@ from manoasr.cli.utils.console import (
 from manoasr.cli.utils.process import (
     get_pid,
     save_pid,
-    remove_pid,
     stop_process,
     is_port_in_use,
     get_port_process,
@@ -173,8 +172,6 @@ def _run_server(config: dict, port: int, debug: bool = False):
     import uvicorn
 
     from manoasr.cli.utils.constants import PROJECT_ROOT
-    from manoasr.cli.utils.torch_deps import add_torch_to_path
-    add_torch_to_path()
 
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -230,19 +227,6 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
         )
 
     save_pid(process.pid)
-
-    import time
-    for _ in range(30):
-        time.sleep(0.5)
-        ret = process.poll()
-        if ret is not None:
-            remove_pid()
-            click.echo(error("Service failed to start (process exited)"))
-            click.echo(info("Check logs: mano-asr logs"))
-            raise SystemExit(1)
-        healthy, _ = _check_service_health(port, timeout=0.5)
-        if healthy:
-            break
 
     model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(model_type_key, {})
