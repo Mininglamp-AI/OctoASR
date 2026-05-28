@@ -39,6 +39,7 @@ class ManoAsr < Formula
   end
 
   def post_install
+    return if ENV["HOMEBREW_BUILDING_BOTTLE"]
     venv = libexec/"venv"
     system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--ignore-installed", "torch", "torchaudio"
   end
