@@ -93,7 +93,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${{ github.ref_name }}" \
+          gh release upload "${{ github.ref_name }}" --clobber \
             --repo "${{ github.repository }}" \
             "${{ steps.bottle_info.outputs.filename }}"
 
@@ -174,8 +174,9 @@ jobs:
             end
 
             def post_install
+              return if ENV["HOMEBREW_BUILDING_BOTTLE"]
               venv = libexec/"venv"
-              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "torch", "torchaudio"
+              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--ignore-installed", "torch", "torchaudio"
             end
 
             def caveats
