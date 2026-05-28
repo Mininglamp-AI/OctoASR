@@ -23,6 +23,7 @@ from manoasr.cli.utils.console import (
 from manoasr.cli.utils.process import (
     get_pid,
     save_pid,
+    remove_pid,
     stop_process,
     is_port_in_use,
     get_port_process,
