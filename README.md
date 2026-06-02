@@ -62,9 +62,9 @@ See the full release history on the **[Releases](https://github.com/Mininglamp-A
 
 mano-asr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `mano-asr model use <name>`.
 
-| Model | Engine | Base model | Quant | Size | Languages | Links |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Mano-ASR-0.8B-Instruct-1.0-MLX-8bit** (default) | `funasr` | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | - | 0.8 GB | ZH / EN | [HuggingFace](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [ModelScope](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| Model | Base model | Quant | Size | Languages | Links |
+| --- | --- | --- | --- | --- | --- |
+| **Mano-ASR-0.8B-Instruct-1.0-MLX-8bit** (default) | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8B | 0.8 GB | ZH / EN | [🤗 HuggingFace](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖 ModelScope](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
 
