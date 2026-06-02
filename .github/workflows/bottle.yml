@@ -47,23 +47,6 @@ jobs:
             echo "has_notes=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Update README changelog
-        run: |
-          git fetch origin main --depth=1
-          git checkout -B main origin/main
-          # The pushed tag may be newer than origin/main; ensure it's reachable.
-          git fetch origin "${GITHUB_REF_NAME}" --no-tags || true
-          python3 scripts/gen_changelog.py
-          if ! git diff --quiet -- README.md; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add README.md
-            git commit -m "docs: add ${GITHUB_REF_NAME} to changelog [skip ci]"
-            git push origin HEAD:main
-          else
-            echo "README changelog already up to date."
-          fi
-
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
