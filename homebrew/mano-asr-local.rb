@@ -2,7 +2,7 @@
 # 使用方法: brew install --formula homebrew/mano-asr-local.rb
 
 class ManoAsr < Formula
-  desc "本地语音转写服务，基于 MLX Fun-ASR-Nano，针对 Apple Silicon 优化"
+  desc "本地语音转写服务，基于 MLX，针对 Apple Silicon 优化"
   homepage "https://github.com/mano-asr/mano-asr"
   url "file:///dev/null"
   sha256 "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"

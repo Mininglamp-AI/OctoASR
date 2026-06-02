@@ -1,362 +1,238 @@
-# mano-asr
+<p align="center">
+  <img src="docs/mano-asr-banner.svg" alt="mano-asr" width="800">
+</p>
 
-`mano-asr` is a local ASR service built around MLX Fun-ASR-Nano. It provides a small FastAPI server for single-audio transcription, optional FSMN VAD segmentation, hotword extraction from personal context, and request/session logging.
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/FastAPI-server-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
+  <a href="https://github.com/Mininglamp-AI/mano-asr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/mano-asr?color=blue" alt="License"></a>
+  <a href="https://github.com/Mininglamp-AI/mano-asr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/mano-asr?style=social" alt="Stars"></a>
+</p>
 
-The current runtime path is intentionally narrow:
+<p align="center">
+  <a href="docs/README_zh.md">中文</a> | <b>English</b>
+</p>
 
-- load one local/uploaded audio file;
-- optionally run FSMN VAD and transcribe each speech segment;
-- return plain transcript text;
-- expose an HTTP API compatible with a simple voice-transcription client flow.
+---
 
-## Features
+## Introduction
 
-- MLX Fun-ASR-Nano inference through `core.models.funasr`.
-- Optional MLX FSMN VAD through `core.models.fsmn`.
-- Audio upload API with validation, size/duration limits, and CORS enabled.
-- Supported upload extensions: `.wav`, `.mp3`, `.ogg`, `.webm`, `.m4a`, `.flac`.
-- Non-WAV uploads are decoded to 16 kHz mono WAV with `ffmpeg` before ASR.
-- Context-aware hotword prompt extraction from `personal_context`.
-- Session records saved under `sessions/YYYY-MM-DD/`, including request metadata, response body, and retained audio artifacts.
-- Local client script for service testing.
+**mano-asr** is a local speech recognition (ASR) service built for **vertical domains**, deeply optimized for Apple Silicon via [MLX](https://github.com/ml-explore/mlx). It works out of the box, runs fully locally, and keeps your data on your machine.
 
-## Project Layout
+mano-asr is specially tuned for **internet / IT office** scenarios — meeting notes, technical discussions, product reviews, and engineering dictation — where English terms, acronyms, product names and jargon (e.g. `FastAPI`, `Kubernetes`, `PRD`, `Code Review`) appear frequently, bringing recognition accuracy on these terms to a usable level.
 
-```text
-.
-├── server.py                         # FastAPI ASR service
-├── client.py                         # Test client for /v1/voice/transcribe
-├── core/
-│   ├── auto_model.py                 # Single-audio ASR wrapper with optional VAD
-│   └── models/
-│       ├── funasr/                   # MLX Fun-ASR-Nano implementation
-│       ├── fsmn/                     # MLX FSMN VAD implementation
-│       └── qwen3_asr/                # Qwen3 ASR / forced-aligner experiments
-├── utils/
-│   ├── load_utils.py                 # Audio-only numpy/ffmpeg loader
-│   └── hotwords_extractor.py         # Hotword extraction from context text
-├── scripts/                          # Convenience launch commands
-├── assets/                           # Sample audio files
-├── models/                           # Local model directories
-└── sessions/                         # Runtime session logs and copied audio
-```
+Core capabilities:
 
-## Requirements
+- 🎯 **Vertical-domain tuning** — specialized tuning for internet / IT office jargon and mixed Chinese-English speech.
+- 🍎 **Native Apple Silicon** — MLX-based local inference on M-series chips, further optimized with our in-house acceleration framework Cider.
+- 🔒 **Fully local, privacy-first** — audio and transcripts never leave your machine.
+- ✂️ **VAD segmentation** — optional FSMN VAD splits long audio and transcribes segment by segment.
+- 🧩 **Pluggable engines** — supports Fun-ASR-Nano, Qwen3-ASR and more base models, switchable with one command.
+- ⚡ **One-command start** — install via `brew install`, then `mano-asr start`.
 
-This repository does not currently include a pinned `requirements.txt` or `pyproject.toml`. The dependency list below is inferred from the source.
+---
 
-Runtime:
+<p align="center">
+  <a href="#en-news">Changelog</a> ·
+  <a href="#en-models">Models</a> ·
+  <a href="#en-install">Installation</a> ·
+  <a href="#en-examples">Usage</a> ·
+  <a href="#en-api">API</a> ·
+  <a href="#en-license">License</a> ·
+  <a href="#en-acknowledgments">Acknowledgments</a> ·
+</p>
 
-- macOS on Apple Silicon is recommended for MLX.
-- Python 3.10+.
-- `ffmpeg` and `ffprobe` on `PATH`.
-- Python packages:
-  - `mlx`
-  - `mlx-audio`
-  - `cider`
-  - `numpy`
-  - `fastapi`
-  - `uvicorn`
-  - `python-multipart`
-  - `requests`
-  - `soundfile`
-  - `scipy`
-  - `safetensors`
-  - `transformers`
-  - `tqdm`
-  - `huggingface_hub` if you use the `hf download` commands below
+---
 
-Install example:
+<a id="en-news"></a>
+
+## Changelog
+
+See the full release history on the **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** page.
+
+- **2026-05-29** — Released the first ASR model for internet office scenarios, with written-style transcription output and accurate recognition of industry-specific terminology.
+- **2026-05-26** — First release: FastAPI transcription service, FunASR-Nano engine, FSMN VAD, hotword extraction, session logging.
+
+---
+
+<a id="en-models"></a>
+
+## Models
+
+mano-asr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `mano-asr model use <name>`.
+
+| Model | Base model | Quant | Size | Languages | Links |
+| --- | --- | --- | --- | --- | --- |
+| **Mano-ASR-0.8B** (default) | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+
+> The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
+
+---
+
+<a id="en-install"></a>
+
+## Installation
+
+### Option 1: Homebrew (recommended)
 
 ```bash
+brew tap mano-asr/mano-asr
+brew install mano-asr
+
+# Start (first run auto-initializes + downloads the default model)
+mano-asr start
+mano-asr doctor   # environment check
+```
+
+### Option 2: From source
+
+```bash
+# 1. Dependency: ffmpeg (decodes non-WAV audio)
 brew install ffmpeg
 
-python3 -m venv .venv
-source .venv/bin/activate
+# 2. Clone + install
+git clone https://github.com/Mininglamp-AI/mano-asr.git
+cd mano-asr
+python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip
-pip install \
-  mlx mlx-audio numpy fastapi "uvicorn[standard]" python-multipart \
-  requests soundfile scipy safetensors transformers tqdm huggingface_hub
-```
+pip install -e .
 
-## Model Files
+# 3. Download the model
+hf download Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
+  --local-dir models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
 
-The server requires an ASR model path. VAD is optional.
+# Behind a China mirror:
+# HF_ENDPOINT=https://hf-mirror.com hf download ...
 
-Recommended local layout:
-
-```text
-models/
-├── mlx-community/
-│   └── Fun-ASR-Nano-2512-8bit/
-└── fsmn-vad-mlx/
-    ├── am.mvn
-    ├── config.json
-    └── model.safetensors
-```
-
-Example model download command:
-
-```bash
-hf download mlx-community/Fun-ASR-Nano-2512-8bit \
-  --local-dir models/mlx-community/Fun-ASR-Nano-2512-8bit \
-  --max-workers 8
-```
-
-For users behind a domestic mirror:
-
-```bash
-HF_ENDPOINT=https://hf-mirror.com hf download mlx-community/Fun-ASR-Nano-2512-8bit \
-  --local-dir models/mlx-community/Fun-ASR-Nano-2512-8bit \
-  --max-workers 8
-```
-
-The checked-in `models/fsmn-vad-mlx/` directory is the expected MLX VAD format. If you use a different VAD directory, it must contain the same required files: `config.json`, `model.safetensors`, and optionally `am.mvn`.
-
-## Run the API Server
-
-Start without VAD:
-
-```bash
+# 4. Start the server
 python3 server.py \
-  --model-path models/mlx-community/Fun-ASR-Nano-2512-8bit \
-  --host 0.0.0.0 \
-  --port 8787 \
-  --load-on-startup
-```
-
-Start with VAD:
-
-```bash
-python3 server.py \
-  --model-path models/mlx-community/Fun-ASR-Nano-2512-8bit \
+  --model-path models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
   --vad-model-path models/fsmn-vad-mlx \
-  --host 0.0.0.0 \
-  --port 8787 \
-  --load-on-startup
+  --host 0.0.0.0 --port 8787 --load-on-startup
 ```
 
-The `scripts/start.sh` script is a convenience wrapper, but check the model paths before using it because local model directories may differ by machine.
+**Requirements:** macOS (Apple Silicon) · Python 3.10+ · `ffmpeg` / `ffprobe` on `PATH`.
 
-Health check:
+---
+
+<a id="en-examples"></a>
+
+## Usage
+
+The example below shows **audio translation**: transcribe speech and translate it into Chinese.
+
+### CLI (recommended)
 
 ```bash
-curl http://127.0.0.1:8787/
+# On first run, the service auto-initializes and downloads the default model
+mano-asr start
+
+# Transcribe / translate an audio file
+mano-asr transcribe assets/BAC009S0764W0129.wav
+
 ```
 
-Expected response:
+### Python API
+
+```python
+from core.auto_model import AutoModel
+
+model = AutoModel(
+    model="models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
+    vad_model="models/fsmn-vad-mlx",   # optional: auto-segment long audio
+)
+
+text = model.generate(
+    "assets/BAC009S0764W0129.wav",
+    task="translate",        # translation task
+    target_language="zh",    # target language: Chinese
+    merge_vad=True,
+)
+print(text)
+# -> "甚至出现交易几乎停滞的情况"
+```
+
+### HTTP API
+
+```bash
+curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
+  -F "audio=@assets/BAC009S0764W0129.wav" \
+  -F "personal_context=## Terms\n- FastAPI\n- Kubernetes" \
+  -F "mode=smart"
+```
 
 ```json
-{"status":200,"service":"mano-asr","message":"ok"}
+{
+  "status": 200,
+  "text": "transcribed text",
+  "m": "mano-asr",
+  "engine": "mlx"
+}
 ```
+
+> Full API fields, limits and auth are documented under [API](#en-api).
+
+---
+
+<a id="en-api"></a>
 
 ## API
 
 ### `POST /v1/voice/transcribe`
 
-Transcribe one uploaded audio file.
-
-Request type: `multipart/form-data`
-
-Fields:
+Transcribe a single uploaded audio file. Request type: `multipart/form-data`.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `audio` | file | yes | Audio file. Supported extensions: `.wav`, `.mp3`, `.ogg`, `.webm`, `.m4a`, `.flac`. |
-| `context_text` | string | no | Existing text. Used by append/edit modes. Kept to the last 5000 chars. |
-| `chat_context` | string | no | Chat context. Kept to the last 20000 chars. |
-| `personal_context` | string | no | Personal correction/hotword context. Kept to the last 10000 chars. |
-| `member_context` | string | no | Member context. Kept to the last 5000 chars. |
-| `mode` | string | no | `smart`, `append_only`, or `edit_only`. Default: `smart`. |
+| `audio` | file | yes | Audio file. Supported: `.wav` `.mp3` `.ogg` `.webm` `.m4a` `.flac` |
+| `context_text` | string | no | Existing text for append/edit modes; last 5000 chars kept |
+| `chat_context` | string | no | Chat context; last 20000 chars kept |
+| `personal_context` | string | no | Personal correction / hotword context; last 10000 chars kept |
+| `member_context` | string | no | Member context; last 5000 chars kept |
+| `mode` | string | no | `smart` / `append_only` / `edit_only`, default `smart` |
 
-Limits:
-
-- default max file size: `30 MiB`;
-- default max duration: `660` seconds;
-- `edit_only` requires `context_text`.
-
-Modes:
-
-- `smart`: currently appends the transcript to `context_text`.
-- `append_only`: appends the transcript to `context_text`.
-- `edit_only`: returns the transcript only after requiring `context_text`.
-
-Example:
-
-```bash
-curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
-  -F "audio=@assets/BAC009S0764W0129.wav" \
-  -F "mode=smart"
-```
-
-Success response:
-
-```json
-{
-  "status": 200,
-  "text": "转写文本",
-  "m": "fun-asr-nano",
-  "engine": "mlx"
-}
-```
+**Limits:** default max file `30 MiB`, max duration `660` s; `edit_only` requires `context_text`.
 
 ### `GET /v1/voice/config`
 
-Return current voice service limits and engine metadata.
+Returns current service limits and engine metadata.
 
 ```bash
 curl http://127.0.0.1:8787/v1/voice/config
 ```
 
-Example response:
-
-```json
-{
-  "enabled": true,
-  "max_duration": 660,
-  "max_file_size": 31457280,
-  "engine": "mlx",
-  "edit_mode": "append"
-}
-```
-
 ### Authentication
 
-Authentication is disabled by default. If the server is started with `--auth-token`, requests to `/v1/voice/transcribe` must include:
-
-```text
-Authorization: Bearer <token>
-```
-
-Example:
+Disabled by default. If started with `--auth-token`, requests must carry `Authorization: Bearer <token>`.
 
 ```bash
-python3 server.py \
-  --model-path models/mlx-community/Fun-ASR-Nano-2512-8bit \
-  --auth-token "$MANO_ASR_TOKEN"
+python3 server.py --model-path <path> --auth-token "$MANO_ASR_TOKEN"
 ```
 
-```bash
-curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
-  -H "Authorization: Bearer $MANO_ASR_TOKEN" \
-  -F "audio=@assets/BAC009S0764W0129.wav"
-```
+---
 
-## Test Client
+<a id="en-license"></a>
 
-Fetch service config:
+## License
 
-```bash
-python3 client.py --config-only
-```
+Released under the [MIT License](LICENSE).
 
-Transcribe the bundled sample audio:
+Copyright (c) 2026 MININGLAMP Technology.
 
-```bash
-python3 client.py --audio assets/BAC009S0764W0129.wav
-```
+---
 
-Use context and auth:
+<a id="en-acknowledgments"></a>
 
-```bash
-python3 client.py \
-  --url http://127.0.0.1:8787 \
-  --audio assets/BAC009S0764W0129.wav \
-  --mode append_only \
-  --context-text "已有内容：" \
-  --personal-context "## 术语\n- FunASR（语音识别模型）" \
-  --auth-token "$MANO_ASR_TOKEN"
-```
+## Acknowledgments
 
-## Python Usage
+mano-asr would not be possible without these excellent open-source projects:
 
-Direct ASR without VAD:
+- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple's machine-learning framework and audio toolkit, the foundation of mano-asr's local inference.
+- [**FunASR / FunAudioLLM**](https://github.com/modelscope/FunASR) — source of Fun-ASR-Nano and FSMN-VAD, providing strong Chinese speech recognition.
+- [**Qwen3**](https://github.com/QwenLM/Qwen3) — the base model behind the Qwen3-ASR engine.
+- [**mlx-community**](https://huggingface.co/mlx-community) — high-quality MLX quantized models.
+- [**ModelScope**](https://github.com/modelscope/modelscope) & [**Hugging Face**](https://huggingface.co/) — model hosting and distribution.
+- [**FastAPI**](https://github.com/fastapi/fastapi) — high-performance web framework.
 
-```python
-from core.auto_model import AutoModel
-
-model = AutoModel(
-    model="models/mlx-community/Fun-ASR-Nano-2512-8bit",
-    vad_model=None,
-)
-
-text = model.generate(
-    "assets/BAC009S0764W0129.wav",
-    task="translate",
-    target_language="zh",
-)
-print(text)
-```
-
-ASR with VAD:
-
-```python
-from core.auto_model import AutoModel
-
-model = AutoModel(
-    model="models/mlx-community/Fun-ASR-Nano-2512-8bit",
-    vad_model="models/fsmn-vad-mlx",
-)
-
-text = model.generate(
-    "assets/BAC009S0764W0129.wav",
-    task="translate",
-    target_language="zh",
-    merge_vad=True,
-)
-print(text)
-```
-
-`AutoModel.generate()` returns a plain `str`, not an `STTOutput` object.
-
-## Runtime Notes
-
-- The server uses a single-worker `ThreadPoolExecutor` and an async lock around generation, so requests are processed serially through the model path.
-- `ffmpeg` is required for decoding non-WAV uploads and by the local audio loader.
-- `ffprobe` is used for duration detection when `soundfile` cannot read the upload directly.
-- Session logs are written by default and may include copied audio files. Do not expose `sessions/` publicly.
-
-## Troubleshooting
-
-### `RuntimeError: ffmpeg is required to decode this audio format`
-
-Install ffmpeg and make sure both `ffmpeg` and `ffprobe` are available on `PATH`.
-
-```bash
-brew install ffmpeg
-ffmpeg -version
-ffprobe -version
-```
-
-### `model path is required`
-
-Start `server.py` with `--model-path`.
-
-### `Audio file not found`
-
-`AutoModel.generate()` accepts a local path. Expand or resolve the path before passing it if the caller runs from a different working directory.
-
-### VAD returns no text
-
-Run without VAD first to verify ASR works:
-
-```bash
-python3 server.py --model-path models/mlx-community/Fun-ASR-Nano-2512-8bit
-```
-
-Then verify the VAD model directory contains `config.json`, `model.safetensors`, and `am.mvn`.
-
-## Development Checks
-
-Basic syntax check:
-
-```bash
-python3 -m py_compile \
-  server.py client.py core/auto_model.py utils/load_utils.py utils/hotwords_extractor.py
-```
-
-Search for remaining heavyweight audio dependencies in the narrow loader path:
-
-```bash
-rg -n "\btorch\b|torchaudio" utils/load_utils.py core/auto_model.py
-```
+Thanks to everyone contributing to the open-source speech recognition community.

@@ -56,7 +56,7 @@ chmod +x homebrew/build-release.sh
 
 生成文件（`build/release-v0.1.0/`）：
 - `mano-asr-0.1.0.tar.gz` - 源代码
-- `Fun-ASR-Nano-2512-8bit.tar.gz` - FunASR 模型
+- `Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz` - Mano-ASR 模型（默认）
 - `Qwen3-ASR-1_7B-8bit.tar.gz` - Qwen3 ASR 模型
 - `fsmn-vad-mlx.tar.gz` - VAD 模型
 - `SHA256SUMS.txt` - 校验和
@@ -69,7 +69,7 @@ git push origin v0.1.0
 
 gh release create v0.1.0 \
   build/release-v0.1.0/mano-asr-0.1.0.tar.gz \
-  build/release-v0.1.0/Fun-ASR-Nano-2512-8bit.tar.gz \
+  build/release-v0.1.0/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz \
   build/release-v0.1.0/Qwen3-ASR-1_7B-8bit.tar.gz \
   build/release-v0.1.0/fsmn-vad-mlx.tar.gz \
   --title "mano-asr v0.1.0" \
@@ -97,7 +97,7 @@ brew install mano-asr
 
 | 模型 | 大小 | 用途 |
 |------|------|------|
-| Fun-ASR-Nano-2512-8bit | ~300MB | FunASR 默认引擎 |
+| Mano-ASR-0.8B-Instruct-1.0-MLX-8bit | ~0.8GB | 默认引擎 |
 | Qwen3-ASR-1_7B-8bit | ~2.2GB | Qwen3-ASR 引擎 |
 | fsmn-vad-mlx | ~2MB | VAD 语音活动检测 |
 

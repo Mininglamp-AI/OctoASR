@@ -15,6 +15,11 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       source_sha256: ${{ steps.source.outputs.sha256 }}
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Get version from tag
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
@@ -26,15 +31,42 @@ jobs:
           SHA256=$(sha256sum source.tar.gz | cut -d' ' -f1)
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
 
+      - name: Extract tag annotation as release notes
+        id: notes
+        run: |
+          # Annotated-tag message body (subject + body), empty for lightweight tags.
+          NOTES=$(git for-each-ref "refs/tags/${GITHUB_REF_NAME}" --format='%(contents)')
+          if [ -n "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
+            echo "has_notes=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "body<<__NOTES_EOF__"
+              echo "$NOTES"
+              echo "__NOTES_EOF__"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "has_notes=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAS_NOTES: ${{ steps.notes.outputs.has_notes }}
+          NOTES_BODY: ${{ steps.notes.outputs.body }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --repo "${{ github.repository }}" \
-            --title "v${{ steps.version.outputs.version }}" \
-            --generate-notes \
-            --draft
+          if [ "$HAS_NOTES" = "true" ]; then
+            printf '%s' "$NOTES_BODY" > release_notes.md
+            gh release create "${{ github.ref_name }}" \
+              --repo "${{ github.repository }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --notes-file release_notes.md \
+              --draft
+          else
+            gh release create "${{ github.ref_name }}" \
+              --repo "${{ github.repository }}" \
+              --title "v${{ steps.version.outputs.version }}" \
+              --generate-notes \
+              --draft
+          fi
 
   bottle:
     needs: create-release

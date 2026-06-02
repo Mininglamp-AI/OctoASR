@@ -9,7 +9,7 @@ import click
 
 from manoasr.cli.utils.config import load_config, save_config, config_exists, get_models_dir
 from manoasr.cli.utils.console import success, error, warning, info, print_header, print_footer, interactive_select
-from manoasr.cli.utils.constants import HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR, USER_MODELS_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE
+from manoasr.cli.utils.constants import HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR, USER_MODELS_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE, model_namespace
 from manoasr.cli.utils.process import get_pid, stop_process
 
 
@@ -54,6 +54,9 @@ def resolve_model_path(model_name: str) -> Path | None:
     for models_dir in [USER_MODELS_DIR, HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR]:
         if not models_dir.exists():
             continue
+        candidate = models_dir / model_namespace(model_name) / model_name
+        if candidate.exists():
+            return candidate
         candidate = models_dir / "mlx-community" / model_name
         if candidate.exists():
             return candidate

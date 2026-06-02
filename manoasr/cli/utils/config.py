@@ -18,6 +18,7 @@ from .constants import (
     USER_MODELS_DIR,
     HOMEBREW_MODELS_DIR,
     LOCAL_MODELS_DIR,
+    model_namespace,
 )
 
 
@@ -31,7 +32,9 @@ def get_models_dir() -> Path:
 
 def get_default_config() -> dict[str, Any]:
     models_dir = get_models_dir()
-    asr_path = models_dir / "mlx-community" / DEFAULT_ASR_MODEL
+    asr_path = models_dir / model_namespace(DEFAULT_ASR_MODEL) / DEFAULT_ASR_MODEL
+    if not asr_path.exists():
+        asr_path = models_dir / "mlx-community" / DEFAULT_ASR_MODEL
     if not asr_path.exists():
         asr_path = models_dir / DEFAULT_ASR_MODEL
     vad_path = models_dir / DEFAULT_VAD_MODEL
