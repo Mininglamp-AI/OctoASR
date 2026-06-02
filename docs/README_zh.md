@@ -64,7 +64,7 @@ mano-asr 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。
 
 | 模型 | 基座模型 | 量化 | 大小 | 语言 | 访问网站 |
 | --- | --- | --- | --- | --- | --- |
-| **Mano-ASR-0.8B-Instruct-1.0-MLX-8bit**（默认） | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8B | 0.8 GB | 中 / 英 | [🤗 HuggingFace](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖 ModelScope](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| **Mano-ASR-0.8B-Instruct-1.0-MLX-8bit**（默认） | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | 中 / 英 | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > 模型支持从 HuggingFace 或 ModelScope（国内镜像）自动下载，首次启动会按网络环境自动选源。
 
