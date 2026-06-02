@@ -21,6 +21,7 @@ from .constants import (
     MODEL_TYPES,
     DEFAULT_VAD_MODEL,
     VERSION,
+    model_namespace,
 )
 from .console import success, error, info, warning
 
@@ -62,6 +63,11 @@ def find_model_in_dirs(model_name: str, is_vad: bool = False) -> Optional[Path]:
         if not models_dir.exists():
             continue
         if not is_vad:
+            # The model's own namespace (HF org), e.g. Mininglamp-2718/ or mlx-community/.
+            candidate = models_dir / model_namespace(model_name) / model_name
+            if _is_model_complete(candidate):
+                return candidate
+            # Legacy layout: everything used to live under mlx-community/.
             candidate = models_dir / "mlx-community" / model_name
             if _is_model_complete(candidate):
                 return candidate
@@ -88,7 +94,7 @@ def download_from_hf(model_name: str, target_dir: Path) -> Path:
     if is_vad:
         local_dir = target_dir / model_name
     else:
-        local_dir = target_dir / "mlx-community" / model_name
+        local_dir = target_dir / model_namespace(model_name) / model_name
 
     local_dir.parent.mkdir(parents=True, exist_ok=True)
 
@@ -105,7 +111,7 @@ def download_from_hf(model_name: str, target_dir: Path) -> Path:
         raise RuntimeError(f"Download incomplete: model weights not found in {local_dir}")
 
     from .update_checker import record_model_sha
-    record_model_sha(model_name, repo_id)
+    record_model_sha(model_name, repo_id, source="hf")
 
     return local_dir
 
@@ -158,7 +164,7 @@ def download_from_modelscope(model_name: str, target_dir: Path) -> Path:
     if is_vad:
         local_dir = target_dir / model_name
     else:
-        local_dir = target_dir / "mlx-community" / model_name
+        local_dir = target_dir / model_namespace(model_name) / model_name
 
     local_dir.parent.mkdir(parents=True, exist_ok=True)
 
@@ -199,6 +205,9 @@ def download_from_modelscope(model_name: str, target_dir: Path) -> Path:
         if temp_dir.exists():
             shutil.rmtree(temp_dir, ignore_errors=True)
         raise RuntimeError(f"Download incomplete: model weights not found in {local_dir}")
+
+    from .update_checker import record_model_sha
+    record_model_sha(model_name, repo_id, source="modelscope")
 
     return local_dir
 
@@ -245,7 +254,9 @@ def download_from_github(model_name: str, target_dir: Path) -> Path:
         if is_vad:
             model_path = target_dir / model_name
         else:
-            model_path = target_dir / "mlx-community" / model_name
+            model_path = target_dir / model_namespace(model_name) / model_name
+            if not model_path.exists():
+                model_path = target_dir / "mlx-community" / model_name
             if not model_path.exists():
                 model_path = target_dir / model_name
 
@@ -295,7 +306,7 @@ def ensure_model(model_name: str, is_vad: bool = False) -> Path:
     if is_vad:
         target = f"~/.mano-asr/models/{model_name}/"
     else:
-        target = f"~/.mano-asr/models/mlx-community/{model_name}/"
+        target = f"~/.mano-asr/models/{model_namespace(model_name)}/{model_name}/"
 
     click.echo(error(f"Could not download model: {model_name}"))
     click.echo()

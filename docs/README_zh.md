@@ -35,9 +35,9 @@ mano-asr 在 **互联网 / IT 办公** 场景下做了专门打磨——会议�
 
 <p align="center">
   <a href="#news">更新动态</a> ·
-  <a href="#examples">使用示例</a> ·
   <a href="#models">适配模型</a> ·
   <a href="#install">安装</a> ·
+  <a href="#examples">使用示例</a> ·
   <a href="#api">API 参考</a> ·
   <a href="#license">License</a> ·
   <a href="#acknowledgments">Acknowledgments</a> ·
@@ -51,64 +51,8 @@ mano-asr 在 **互联网 / IT 办公** 场景下做了专门打磨——会议�
 
 完整的版本更新记录见 **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** 页面。
 
----
-
-<a id="examples"></a>
-
-## 使用示例
-
-下面以一段**音频翻译**为例：将一段语音转写并翻译为中文。
-
-### 命令行（推荐）
-
-```bash
-# 安装后首次启动会自动初始化并下载默认模型
-mano-asr start
-
-# 转写 / 翻译一段音频
-mano-asr transcribe assets/BAC009S0764W0129.wav
-
-```
-
-### Python API
-
-```python
-from core.auto_model import AutoModel
-
-model = AutoModel(
-    model="models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
-    vad_model="models/fsmn-vad-mlx",   # 可选：长音频自动分段
-)
-
-text = model.generate(
-    "assets/BAC009S0764W0129.wav",
-    task="translate",        # 翻译任务
-    target_language="zh",    # 目标语言：中文
-    merge_vad=True,
-)
-print(text)
-# -> "甚至出现交易几乎停滞的情况"
-```
-
-### HTTP API
-
-```bash
-curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
-  -F "audio=@assets/BAC009S0764W0129.wav" \
-  -F "personal_context=## 术语\n- FastAPI\n- Kubernetes" \
-  -F "mode=smart"
-```
-
-```json
-{
-  "status": 200,
-  "text": "转写文本",
-  "m": "fun-asr-nano",
-  "engine": "mlx"
-}
-```
-
-> 完整 API 字段、限制与鉴权说明见下方 [API 参考](#api)。
+- **2026-05-29** — 发布首个面向互联网办公场景的 ASR 模型,支持书面化转录输出,精准识别行业专业术语。
+- **2026-05-26** — 首次发布:FastAPI 转写服务、FunASR-Nano 引擎、FSMN VAD、热词提取、会话日志。
 
 ---
 
@@ -169,6 +113,65 @@ python3 server.py \
 ```
 
 **运行要求：** macOS (Apple Silicon) · Python 3.10+ · `ffmpeg` / `ffprobe` 在 `PATH` 中。
+
+---
+
+<a id="examples"></a>
+
+## 使用示例
+
+下面以一段**音频翻译**为例：将一段语音转写并翻译为中文。
+
+### 命令行（推荐）
+
+```bash
+# 安装后首次启动会自动初始化并下载默认模型
+mano-asr start
+
+# 转写 / 翻译一段音频
+mano-asr transcribe assets/BAC009S0764W0129.wav
+
+```
+
+### Python API
+
+```python
+from core.auto_model import AutoModel
+
+model = AutoModel(
+    model="models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
+    vad_model="models/fsmn-vad-mlx",   # 可选：长音频自动分段
+)
+
+text = model.generate(
+    "assets/BAC009S0764W0129.wav",
+    task="translate",        # 翻译任务
+    target_language="zh",    # 目标语言：中文
+    merge_vad=True,
+)
+print(text)
+# -> "甚至出现交易几乎停滞的情况"
+```
+
+### HTTP API
+
+```bash
+curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
+  -F "audio=@assets/BAC009S0764W0129.wav" \
+  -F "personal_context=## 术语\n- FastAPI\n- Kubernetes" \
+  -F "mode=smart"
+```
+
+```json
+{
+  "status": 200,
+  "text": "转写文本",
+  "m": "mano-asr",
+  "engine": "mlx"
+}
+```
+
+> 完整 API 字段、限制与鉴权说明见下方 [API 参考](#api)。
 
 ---
 

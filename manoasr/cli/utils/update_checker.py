@@ -17,6 +17,7 @@ from .constants import (
     CHECK_INTERVAL,
     GITHUB_REPO,
     HF_REPO_MAP,
+    MODELSCOPE_REPO_MAP,
     VERSION,
 )
 from .console import warning, info, divider
@@ -70,7 +71,7 @@ def _fetch_latest_cli_version() -> Optional[str]:
         return None
 
 
-def _fetch_model_sha(repo_id: str) -> Optional[str]:
+def _fetch_model_sha_hf(repo_id: str) -> Optional[str]:
     url = f"https://huggingface.co/api/models/{repo_id}"
     req = Request(url)
     req.add_header("User-Agent", f"mano-asr/{VERSION}")
@@ -80,6 +81,33 @@ def _fetch_model_sha(repo_id: str) -> Optional[str]:
         return data.get("sha")
     except Exception:
         return None
+
+
+def _fetch_model_sha_modelscope(repo_id: str) -> Optional[str]:
+    url = (
+        f"https://www.modelscope.cn/api/v1/models/{repo_id}"
+        f"/repo/files?Revision=master"
+    )
+    req = Request(url)
+    req.add_header("User-Agent", f"mano-asr/{VERSION}")
+    try:
+        resp = urlopen(req, timeout=_CHECK_TIMEOUT)
+        data = json.loads(resp.read().decode("utf-8"))
+        files = data.get("Data", {}).get("Files", [])
+        # Files share the repo's latest commit hash in "Revision".
+        for f in files:
+            rev = f.get("Revision")
+            if rev:
+                return rev
+    except Exception:
+        pass
+    return None
+
+
+def _fetch_model_sha(repo_id: str, source: str = "hf") -> Optional[str]:
+    if source == "modelscope":
+        return _fetch_model_sha_modelscope(repo_id)
+    return _fetch_model_sha_hf(repo_id)
 
 
 def _get_installed_model_names() -> list[str]:
@@ -93,14 +121,18 @@ def _get_installed_model_names() -> list[str]:
     return installed
 
 
-def record_model_sha(model_name: str, repo_id: str) -> None:
+def record_model_sha(model_name: str, repo_id: str, source: str = "hf") -> None:
     try:
-        sha = _fetch_model_sha(repo_id)
+        sha = _fetch_model_sha(repo_id, source)
         if not sha:
             return
         cache = _load_cache()
         models = cache.setdefault("models", {})
-        models[model_name] = {"repo": repo_id, "known_sha": sha}
+        models[model_name] = {
+            "repo": repo_id,
+            "source": source,
+            "known_sha": sha,
+        }
         _save_cache(cache)
     except Exception:
         pass
@@ -129,13 +161,24 @@ def _do_check_and_notify() -> None:
         installed = _get_installed_model_names()
         models_cache = cache.setdefault("models", {})
         for model_name in installed:
-            repo_id = HF_REPO_MAP.get(model_name)
+            entry = models_cache.get(model_name, {})
+            # Prefer the source the model was actually downloaded from; this is
+            # recorded at download time. Fall back to HF for models that were
+            # already present before source tracking existed.
+            source = entry.get("source", "hf")
+            repo_id = entry.get("repo")
+            if not repo_id:
+                if source == "modelscope":
+                    repo_id = MODELSCOPE_REPO_MAP.get(model_name)
+                else:
+                    repo_id = HF_REPO_MAP.get(model_name)
             if not repo_id:
                 continue
-            remote_sha = _fetch_model_sha(repo_id)
+            remote_sha = _fetch_model_sha(repo_id, source)
             if remote_sha:
                 entry = models_cache.setdefault(
-                    model_name, {"repo": repo_id, "known_sha": remote_sha}
+                    model_name,
+                    {"repo": repo_id, "source": source, "known_sha": remote_sha},
                 )
                 entry["remote_sha"] = remote_sha
 

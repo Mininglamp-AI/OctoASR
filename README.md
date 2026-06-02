@@ -35,9 +35,9 @@ Core capabilities:
 
 <p align="center">
   <a href="#en-news">Changelog</a> ·
-  <a href="#en-examples">Usage</a> ·
   <a href="#en-models">Models</a> ·
   <a href="#en-install">Installation</a> ·
+  <a href="#en-examples">Usage</a> ·
   <a href="#en-api">API</a> ·
   <a href="#en-license">License</a> ·
   <a href="#en-acknowledgments">Acknowledgments</a> ·
@@ -50,6 +50,71 @@ Core capabilities:
 ## Changelog
 
 See the full release history on the **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** page.
+
+- **2026-05-29** — Released the first ASR model for internet office scenarios, with written-style transcription output and accurate recognition of industry-specific terminology.
+- **2026-05-26** — First release: FastAPI transcription service, FunASR-Nano engine, FSMN VAD, hotword extraction, session logging.
+
+---
+
+<a id="en-models"></a>
+
+## Models
+
+mano-asr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `mano-asr model use <name>`.
+
+| Model | Engine | Base model | Quant | Size | Languages | Links |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Mano-ASR-0.8B-Instruct-1.0-MLX-8bit** (default) | `funasr` | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | - | 0.8 GB | ZH / EN | [HuggingFace](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [ModelScope](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+
+> The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
+
+---
+
+<a id="en-install"></a>
+
+## Installation
+
+### Option 1: Homebrew (recommended)
+
+```bash
+brew tap mano-asr/mano-asr
+brew install mano-asr
+
+# Start (first run auto-initializes + downloads the default model)
+mano-asr start
+mano-asr doctor   # environment check
+```
+
+### Option 2: From source
+
+```bash
+# 1. Dependency: ffmpeg (decodes non-WAV audio)
+brew install ffmpeg
+
+# 2. Clone + install
+git clone https://github.com/Mininglamp-AI/mano-asr.git
+cd mano-asr
+python3 -m venv .venv && source .venv/bin/activate
+pip install -U pip
+pip install -e .
+
+# 3. Download the model
+hf download Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
+  --local-dir models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
+
+# Behind a China mirror:
+# HF_ENDPOINT=https://hf-mirror.com hf download ...
+
+# 4. Start the server
+python3 server.py \
+  --model-path models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
+  --vad-model-path models/fsmn-vad-mlx \
+  --host 0.0.0.0 --port 8787 --load-on-startup
+```
+
+**Requirements:** macOS (Apple Silicon) · Python 3.10+ · `ffmpeg` / `ffprobe` on `PATH`.
+
+---
 
 <a id="en-examples"></a>
 
@@ -101,68 +166,14 @@ curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
 {
   "status": 200,
   "text": "transcribed text",
-  "m": "fun-asr-nano",
+  "m": "mano-asr",
   "engine": "mlx"
 }
 ```
 
 > Full API fields, limits and auth are documented under [API](#en-api).
 
-<a id="en-models"></a>
-
-## Models
-
-mano-asr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `mano-asr model use <name>`.
-
-| Model | Engine | Base model | Quant | Size | Languages | Links |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Mano-ASR-0.8B-Instruct-1.0-MLX-8bit** (default) | `funasr` | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | - | 0.8 GB | ZH / EN | [HuggingFace](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [ModelScope](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
-
-> The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
-
-<a id="en-install"></a>
-
-## Installation
-
-### Option 1: Homebrew (recommended)
-
-```bash
-brew tap mano-asr/mano-asr
-brew install mano-asr
-
-# Start (first run auto-initializes + downloads the default model)
-mano-asr start
-mano-asr doctor   # environment check
-```
-
-### Option 2: From source
-
-```bash
-# 1. Dependency: ffmpeg (decodes non-WAV audio)
-brew install ffmpeg
-
-# 2. Clone + install
-git clone https://github.com/Mininglamp-AI/mano-asr.git
-cd mano-asr
-python3 -m venv .venv && source .venv/bin/activate
-pip install -U pip
-pip install -e .
-
-# 3. Download the model
-hf download Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
-  --local-dir models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
-
-# Behind a China mirror:
-# HF_ENDPOINT=https://hf-mirror.com hf download ...
-
-# 4. Start the server
-python3 server.py \
-  --model-path models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
-  --vad-model-path models/fsmn-vad-mlx \
-  --host 0.0.0.0 --port 8787 --load-on-startup
-```
-
-**Requirements:** macOS (Apple Silicon) · Python 3.10+ · `ffmpeg` / `ffprobe` on `PATH`.
+---
 
 <a id="en-api"></a>
 
@@ -199,6 +210,8 @@ Disabled by default. If started with `--auth-token`, requests must carry `Author
 python3 server.py --model-path <path> --auth-token "$MANO_ASR_TOKEN"
 ```
 
+---
+
 <a id="en-license"></a>
 
 ## License
@@ -206,6 +219,8 @@ python3 server.py --model-path <path> --auth-token "$MANO_ASR_TOKEN"
 Released under the [MIT License](LICENSE).
 
 Copyright (c) 2026 MININGLAMP Technology.
+
+---
 
 <a id="en-acknowledgments"></a>
 
