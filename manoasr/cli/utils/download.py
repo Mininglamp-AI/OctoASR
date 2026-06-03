@@ -26,19 +26,53 @@ from .constants import (
 from .console import success, error, info, warning
 
 
-def _detect_preferred_source() -> str:
-    """Detect network environment, returns 'hf' or 'modelscope'."""
-    import os
+def _measure_latency(host: str, port: int = 443, timeout: float = 4.0) -> float:
+    """Return TCP connect latency to host in seconds, or inf on failure."""
     import socket
+    import time
+
+    best = float("inf")
+    # Two quick attempts; keep the better one to smooth out jitter.
+    for _ in range(2):
+        start = time.monotonic()
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                elapsed = time.monotonic() - start
+                best = min(best, elapsed)
+        except (socket.timeout, OSError):
+            pass
+    return best
+
+
+def _detect_preferred_source() -> str:
+    """Pick the faster of HuggingFace / ModelScope by measuring latency.
+
+    Returns 'hf' or 'modelscope'. An explicit HF_ENDPOINT forces 'hf'.
+    Unlike a plain reachability check, this also routes around the
+    "reachable but slow" case (typical for HuggingFace from mainland China)
+    by comparing actual connect latency to both hosts concurrently.
+    """
+    import os
+    from concurrent.futures import ThreadPoolExecutor
 
     if os.environ.get("HF_ENDPOINT"):
         return "hf"
 
-    try:
-        socket.create_connection(("huggingface.co", 443), timeout=3)
-        return "hf"
-    except (socket.timeout, OSError):
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        hf_future = pool.submit(_measure_latency, "huggingface.co")
+        ms_future = pool.submit(_measure_latency, "www.modelscope.cn")
+        hf_latency = hf_future.result()
+        ms_latency = ms_future.result()
+
+    # Both unreachable: fall back to ModelScope (more reliable in CN, where
+    # this failure mode is most common).
+    if hf_latency == float("inf") and ms_latency == float("inf"):
         return "modelscope"
+
+    # Prefer HF only when it is meaningfully fast: reachable and not much
+    # slower than ModelScope. A small bias toward HF avoids flapping when the
+    # two are close, but "reachable but slow" HF loses to a snappy ModelScope.
+    return "hf" if hf_latency <= ms_latency * 1.5 else "modelscope"
 
 
 def _is_model_complete(model_dir: Path) -> bool:

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import click
@@ -80,6 +81,37 @@ def switch_engine(config: dict, engine_key: str) -> None:
     save_config(config)
 
 
+def _infer_engine_type(model_path: Path) -> str:
+    """Infer the engine key (funasr / qwen3-asr) from a model's config.json.
+
+    Maps the server-side model_type back to the MODEL_TYPES key. Falls back to
+    the default engine when the config is missing or unrecognized.
+    """
+    config_file = model_path / "config.json"
+    detected = None
+    try:
+        with open(config_file, encoding="utf-8") as f:
+            data = json.load(f)
+        detected = data.get("model_type")
+        if not detected:
+            detected = data.get("thinker_config", {}).get("model_type")
+    except Exception:
+        pass
+
+    if detected:
+        for key, spec in MODEL_TYPES.items():
+            if spec["server_type"] == detected:
+                return key
+    return DEFAULT_MODEL_TYPE
+
+
+def switch_asr_model(config: dict, model_name: str, model_path: Path) -> None:
+    """Switch to a specific ASR model, setting both its path and engine type."""
+    config["models"]["type"] = _infer_engine_type(model_path)
+    config["models"]["asr"] = str(model_path)
+    save_config(config)
+
+
 def restart_service_if_running() -> None:
     pid = get_pid()
     if not pid:
@@ -110,21 +142,27 @@ def model(ctx):
         raise SystemExit(1)
 
     config = load_config()
-    current = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
+    current_asr = Path(config.get("models", {}).get("asr", "")).name
+
+    models = get_available_models()
+    asr_models = models["asr"]
+
+    if not asr_models:
+        click.echo(error("No ASR models found. Run 'mano-asr start' to download one."))
+        raise SystemExit(1)
 
     options = [
-        {"key": key, "label": f"{key:<12}{spec['label']}"}
-        for key, spec in MODEL_TYPES.items()
+        {"key": name, "label": name, "path": path}
+        for name, path in asr_models
     ]
 
-    chosen = interactive_select("Select ASR Engine", options, current=current)
+    chosen = interactive_select("Select ASR Model", options, current=current_asr)
 
-    if chosen is None or chosen["key"] == current:
+    if chosen is None or chosen["key"] == current_asr:
         return
 
-    switch_engine(config, chosen["key"])
-    spec = MODEL_TYPES[chosen["key"]]
-    click.echo(success(f"Switched ASR engine: {chosen['key']} ({spec['label']})"))
+    switch_asr_model(config, chosen["key"], chosen["path"])
+    click.echo(success(f"Switched ASR model: {chosen['key']}"))
     restart_service_if_running()
 
 
@@ -240,8 +278,11 @@ def model_use(model_name: str, model_type: str):
         raise SystemExit(1)
 
     config = load_config()
-    config["models"][found_type] = str(found_path)
-    save_config(config)
+    if found_type == "asr":
+        switch_asr_model(config, model_name, found_path)
+    else:
+        config["models"][found_type] = str(found_path)
+        save_config(config)
 
     type_name = "ASR" if found_type == "asr" else "VAD"
     click.echo(success(f"Switched {type_name} model: {model_name}"))

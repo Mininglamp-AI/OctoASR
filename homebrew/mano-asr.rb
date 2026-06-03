@@ -38,12 +38,6 @@ class ManoAsr < Formula
     chmod 0755, bin/"mano-asr"
   end
 
-  def post_install
-    return if ENV["HOMEBREW_BUILDING_BOTTLE"]
-    venv = libexec/"venv"
-    system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--ignore-installed", "torch", "torchaudio"
-  end
-
   def caveats
     <<~EOS
       mano-asr installed successfully!

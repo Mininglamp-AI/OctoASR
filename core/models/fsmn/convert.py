@@ -70,7 +70,7 @@ def sanitize(pt_weights: dict) -> dict:
 
 def convert(pt_path: str, output_dir: str):
     """执行转换."""
-    import torch
+    import torch  # 仅离线权重转换需要,不在运行时路径(运行时无需安装 torch)
 
     print(f"[1] 加载 PyTorch 权重: {pt_path}")
     pt_weights = torch.load(pt_path, map_location="cpu")
