@@ -3,11 +3,12 @@
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/FastAPI-server-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
   <a href="https://github.com/Mininglamp-AI/mano-asr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/mano-asr?color=blue" alt="License"></a>
   <a href="https://github.com/Mininglamp-AI/mano-asr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/mano-asr?style=social" alt="Stars"></a>
+  <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
+  <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
+  <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
 </p>
 
 <p align="center">
@@ -18,13 +19,11 @@
 
 ## Introduction
 
-**mano-asr** is a local speech recognition (ASR) service built for **vertical domains**, deeply optimized for Apple Silicon via [MLX](https://github.com/ml-explore/mlx). It works out of the box, runs fully locally, and keeps your data on your machine.
-
-mano-asr is specially tuned for **internet / IT office** scenarios — meeting notes, technical discussions, product reviews, and engineering dictation — where English terms, acronyms, product names and jargon (e.g. `FastAPI`, `Kubernetes`, `PRD`, `Code Review`) appear frequently, bringing recognition accuracy on these terms to a usable level.
+**mano-asr** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **internet / IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, mano-asr accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
 
 Core capabilities:
 
-- 🎯 **Vertical-domain tuning** — specialized tuning for internet / IT office jargon and mixed Chinese-English speech.
+- 🎯 **Vertical-domain optimization** — optimized on internet / IT office data; accurate on English terms, acronyms, product names, and mixed Chinese-English speech.
 - 🍎 **Native Apple Silicon** — MLX-based local inference on M-series chips, further optimized with our in-house acceleration framework Cider.
 - 🔒 **Fully local, privacy-first** — audio and transcripts never leave your machine.
 - ✂️ **VAD segmentation** — optional FSMN VAD splits long audio and transcribes segment by segment.
@@ -62,9 +61,9 @@ See the full release history on the **[Releases](https://github.com/Mininglamp-A
 
 mano-asr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `mano-asr model use <name>`.
 
-| Model | Base model | Quant | Size | Languages | Links |
-| --- | --- | --- | --- | --- | --- |
-| **Mano-ASR-0.8B** (default) | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| Model | Base model | Quant | Size | Languages | Links                                                                                                                                                                                                                                                                   |
+| --- | --- | --- | --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Mano-ASR-0.8B** (default) | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) ·[🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
 

@@ -79,7 +79,7 @@ CHAT_CONTEXT_LIMIT = 20000
 PERSONAL_CONTEXT_LIMIT = 10000
 MEMBER_CONTEXT_LIMIT = 5000
 
-SESSIONS_DIR = Path(__file__).resolve().parent / "sessions"
+SESSIONS_DIR = Path.home() / ".mano-asr" / "sessions"
 
 _model: Optional[AutoModel] = None
 _model_lock = Lock()

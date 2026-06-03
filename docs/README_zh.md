@@ -3,11 +3,12 @@
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/python-3.10+-3776AB?logo=python&logoColor=white" alt="Python"></a>
-  <a href="#"><img src="https://img.shields.io/badge/FastAPI-server-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
   <a href="https://github.com/Mininglamp-AI/mano-asr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/mano-asr?color=blue" alt="License"></a>
   <a href="https://github.com/Mininglamp-AI/mano-asr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/mano-asr?style=social" alt="Stars"></a>
+  <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
+  <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
+  <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
 </p>
 
 <p align="center">
@@ -18,13 +19,11 @@
 
 ## 简介
 
-**mano-asr** 是一款面向 **垂直领域** 的本地语音识别（ASR）服务，基于 [MLX](https://github.com/ml-explore/mlx) 为 Apple Silicon 深度优化，开箱即用、完全本地运行、数据不出本机。
-
-mano-asr 在 **互联网 / IT 办公** 场景下做了专门打磨——会议纪要、技术讨论、产品评审、研发口播等场景中高频出现的英文术语、缩写、产品名、专有名词（如 `FastAPI`、`Kubernetes`、`PRD`、`Code Review`、`埋点`、`回滚` 等）进行了针对性的微调，把识别准确率拉到可用级别。
+**mano-asr** 是一款面向垂直领域的本地语音识别服务，基于 [Cider](https://github.com/Mininglamp-AI/cider) 针对 Apple Silicon 深度优化，专为 **互联网 / IT 办公** 场景打造，深度适配会议纪要、技术讨论、产品评审、研发口播等高频办公场景。依托对领域语料的针对性优化，mano-asr 能够准确识别英文术语、缩写、产品名等专有名词（如 `Kubernetes`、`FastAPI`、`PRD`、`Code Review`）与中英混合表达，有效应对通用模型常见的术语误转、中英混说断句混乱等问题，实现"听得清、懂行话、写得准"。服务完全本地运行，开箱即用，音频与转写数据不出本机。
 
 核心能力：
 
-- 🎯 **垂直领域优化** — 针对互联网、IT 办公场景的术语和中英混说做了专项调优。
+- 🎯 **垂直领域优化** — 面向互联网 / IT 办公语料优化，精准识别英文术语、缩写、产品名与中英混说。
 - 🍎 **Apple Silicon 原生** — 基于 MLX 对 M 系列芯片本地推理，并在此基础上使用自研加速框架 Cider 进行进一步优化。
 - 🔒 **完全本地、隐私优先** — 音频与转写结果均不离开本机。
 - ✂️ **VAD 智能分段** — 可选 FSMN VAD，对长音频自动切分后逐段转写。
@@ -64,7 +63,7 @@ mano-asr 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。
 
 | 模型 | 基座模型 | 量化 | 大小 | 语言 | 访问网站 |
 | --- | --- | --- | --- | --- | --- |
-| **Mano-ASR-0.8B**（默认） | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | 中 / 英 | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| **Mano-ASR-0.8B**（默认） | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | 中 / 英 | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > 模型支持从 HuggingFace 或 ModelScope（国内镜像）自动下载，首次启动会按网络环境自动选源。
 
