@@ -34,8 +34,29 @@ from utils.hotwords_extractor import extract_terms as extract_hotwords_from_cont
 from utils.repetition_detector import check_repetition, has_repetition
 
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger(__name__)
+def _setup_logger() -> logging.Logger:
+    """Configure the app logger robustly.
+
+    `logging.basicConfig` is a no-op once the root logger already has handlers,
+    and uvicorn reconfigures logging on startup — so relying on basicConfig made
+    "Transcribe OK" lines silently disappear. Attach our own StreamHandler to
+    this module's logger and disable propagation so it always emits to
+    stdout/stderr (which the daemon redirects to the log file) regardless of
+    uvicorn's setup.
+    """
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    if not any(isinstance(h, logging.StreamHandler) for h in log.handlers):
+        handler = logging.StreamHandler()
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+        )
+        log.addHandler(handler)
+    log.propagate = False
+    return log
+
+
+logger = _setup_logger()
 
 MODEL_PATH: Optional[str] = None
 VAD_MODEL_PATH: Optional[str] = None
