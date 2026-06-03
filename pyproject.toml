@@ -15,6 +15,7 @@ dependencies = [
     "python-multipart>=0.0.5",
     "uvicorn>=0.20",
     "numpy",
+    "scipy>=1.10",
     "mlx>=0.5",
     "mlx-lm",
     "mlx-audio",
