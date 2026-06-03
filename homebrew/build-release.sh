@@ -4,7 +4,7 @@
 
 set -e
 
-VERSION="0.1.3"
+VERSION="0.1.9"
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build"
 RELEASE_DIR="$BUILD_DIR/release-v$VERSION"
