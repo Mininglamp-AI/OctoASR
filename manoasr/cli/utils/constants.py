@@ -3,7 +3,7 @@
 
 from pathlib import Path
 
-VERSION = "0.1.10"
+VERSION = "0.1.11"
 
 DEFAULT_PORT = 8787
 
