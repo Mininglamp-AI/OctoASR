@@ -83,17 +83,18 @@ SESSIONS_DIR = Path.home() / ".mano-asr" / "sessions"
 
 # 转写结果硬替换：模型常把这些英文专有名词输出成中文音译，强制改回目标写法
 TRANSCRIPT_REPLACEMENTS = {
-    "毕达哥拉斯": "Pythagoras",
-    "彭特兰": "Pentland",
+    "毕达哥拉斯": "pythagoras",
+    "彭特兰": "pentland",
     "布鲁克斯": "Brooks",
-    "哥德尔": "Godel",
-    "冯·诺伊曼": "von Neumann",
-    "冯诺伊曼": "von Neumann",
-    "达芬奇": "Da Vinci",
-    "达·芬奇": "Da Vinci",
+    "哥德尔": "godel",
+    "冯·诺伊曼": "vonneumann",
+    "冯诺伊曼": "vonneumann",
+    "达芬奇": "DaVinci",
+    "达·芬奇": "DaVinci",
     "卡诺": "Kano",
-    "鬼谷子": "Guiguzi",
-    "苏格拉底": "Socrates",
+    "Guiguzi": "鬼谷子",
+    "Socrates": "苏格拉底",
+    "Sokrates": "苏格拉底",
     "科特": "Kotter",
 }
 
