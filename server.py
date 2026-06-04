@@ -81,6 +81,22 @@ MEMBER_CONTEXT_LIMIT = 5000
 
 SESSIONS_DIR = Path.home() / ".mano-asr" / "sessions"
 
+# 转写结果硬替换：模型常把这些英文专有名词输出成中文音译，强制改回目标写法
+TRANSCRIPT_REPLACEMENTS = {
+    "毕达哥拉斯": "Pythagoras",
+    "彭特兰": "Pentland",
+    "布鲁克斯": "Brooks",
+    "哥德尔": "Godel",
+    "冯·诺伊曼": "von Neumann",
+    "冯诺伊曼": "von Neumann",
+    "达芬奇": "Da Vinci",
+    "达·芬奇": "Da Vinci",
+    "卡诺": "Kano",
+    "鬼谷子": "Guiguzi",
+    "苏格拉底": "Socrates",
+    "科特": "Kotter",
+}
+
 _model: Optional[AutoModel] = None
 _model_lock = Lock()
 _generate_lock: Optional[asyncio.Lock] = None
@@ -528,6 +544,9 @@ async def transcribe_voice(
                 formal=True,
                 merge_vad=True,
         )
+
+        for _src, _dst in TRANSCRIPT_REPLACEMENTS.items():
+            transcript = transcript.replace(_src, _dst)
         extras["transcript"] = transcript
 
         audio_duration = extras.get("audio_duration")
