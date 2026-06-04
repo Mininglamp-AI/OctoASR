@@ -49,7 +49,7 @@ brew install mano-asr
 
 ```bash
 mano-asr --version
-# 输出: mano-asr 0.1.11
+# 输出: mano-asr 0.1.12
 ```
 
 ### 2. 环境检查
