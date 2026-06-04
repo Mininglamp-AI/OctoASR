@@ -4,7 +4,7 @@
 
 set -e
 
-VERSION="0.1.11"
+VERSION="0.1.12"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_DIR/build/bottle"
 

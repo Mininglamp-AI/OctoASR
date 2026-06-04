@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "manoasr"
-version = "0.1.11"
+version = "0.1.12"
 description = "本地语音转写服务，基于 MLX，针对 Apple Silicon 优化"
 requires-python = ">=3.10"
 dependencies = [
