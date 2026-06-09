@@ -32,6 +32,7 @@ from core.auto_model import AutoModel
 
 from utils.hotwords_extractor import extract_terms as extract_hotwords_from_context
 from utils.repetition_detector import check_repetition, has_repetition
+from utils import mention
 
 
 def _setup_logger() -> logging.Logger:
@@ -80,23 +81,6 @@ PERSONAL_CONTEXT_LIMIT = 10000
 MEMBER_CONTEXT_LIMIT = 5000
 
 SESSIONS_DIR = Path.home() / ".mano-asr" / "sessions"
-
-# 转写结果硬替换：模型常把这些英文专有名词输出成中文音译，强制改回目标写法
-TRANSCRIPT_REPLACEMENTS = {
-    "毕达哥拉斯": "pythagoras",
-    "彭特兰": "pentland",
-    "布鲁克斯": "Brooks",
-    "哥德尔": "godel",
-    "冯·诺伊曼": "vonneumann",
-    "冯诺伊曼": "vonneumann",
-    "达芬奇": "DaVinci",
-    "达·芬奇": "DaVinci",
-    "卡诺": "Kano",
-    "Guiguzi": "鬼谷子",
-    "Socrates": "苏格拉底",
-    "Sokrates": "苏格拉底",
-    "科特": "Kotter",
-}
 
 _model: Optional[AutoModel] = None
 _model_lock = Lock()
@@ -545,9 +529,12 @@ async def transcribe_voice(
                 formal=True,
                 merge_vad=True,
         )
-
-        for _src, _dst in TRANSCRIPT_REPLACEMENTS.items():
-            transcript = transcript.replace(_src, _dst)
+        
+        try:
+            transcript = mention.replace(transcript)
+        except Exception as exc:
+            logger.exception("mention.replace failed: %s", exc)
+        
         extras["transcript"] = transcript
 
         audio_duration = extras.get("audio_duration")
