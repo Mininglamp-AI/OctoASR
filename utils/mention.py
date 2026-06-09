@@ -215,15 +215,6 @@ def _resolve_name(name, mention_map):
 
 def _resolve_candidate(candidate_name, mention_map):
     """Reverse-decreasing match over a candidate name.
-
-    The regex greedily swallows text stuck to a mention (e.g. "@小天看着今天高考"
-    yields candidate "小天看着今天高考"). We try the longest prefix first and
-    shrink one char at a time so a real mention is found without a separating
-    space, while longer aliases still win over shorter ones. Each lookup goes
-    through _resolve_name, so the paren-suffix fallback still applies.
-
-    Returns (alias, canonical_name, rest); canonical_name is None if nothing
-    matched, in which case rest is the full candidate.
     """
     for end in range(len(candidate_name), 0, -1):
         alias = candidate_name[:end]
