@@ -4,8 +4,8 @@
 
 set -e
 
-VERSION="0.1.13"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_DIR/manoasr/__init__.py")"
 BUILD_DIR="$PROJECT_DIR/build/bottle"
 
 # 检测 Python

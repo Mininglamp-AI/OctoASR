@@ -3,7 +3,7 @@
 
 from pathlib import Path
 
-VERSION = "0.1.13"
+from manoasr import __version__ as VERSION
 
 DEFAULT_PORT = 8787
 

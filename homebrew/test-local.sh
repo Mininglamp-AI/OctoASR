@@ -52,8 +52,9 @@ PASS=0
 FAIL=0
 
 # 版本检查
+EXPECTED_VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$(dirname "$0")/../manoasr/__init__.py")"
 VERSION_OUTPUT=$(mano-asr --version 2>&1 || true)
-if echo "$VERSION_OUTPUT" | grep -q "0.1.13"; then
+if echo "$VERSION_OUTPUT" | grep -q "$EXPECTED_VERSION"; then
     echo "    ✓ mano-asr --version"
     PASS=$((PASS + 1))
 else

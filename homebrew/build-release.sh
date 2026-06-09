@@ -4,8 +4,8 @@
 
 set -e
 
-VERSION="0.1.13"
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_ROOT/manoasr/__init__.py")"
 BUILD_DIR="$PROJECT_ROOT/build"
 RELEASE_DIR="$BUILD_DIR/release-v$VERSION"
 
