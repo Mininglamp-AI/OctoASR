@@ -213,6 +213,17 @@ def _resolve_name(name, mention_map):
     return None
 
 
+def _resolve_candidate(candidate_name, mention_map):
+    """Reverse-decreasing match over a candidate name.
+    """
+    for end in range(len(candidate_name), 0, -1):
+        alias = candidate_name[:end]
+        canonical_name = _resolve_name(alias, mention_map)
+        if canonical_name:
+            return alias, canonical_name, candidate_name[end:]
+    return None, None, candidate_name
+
+
 def replace(text):
     if not isinstance(text, str):
         raise TypeError(f"replace expected str, got {type(text).__name__}")
@@ -220,9 +231,12 @@ def replace(text):
 
     def _replace_match(match):
         item = match.group(0)
-        replacement = _resolve_name(item[1:], mention_map)
-        if replacement:
-            return f"@{replacement}"
-        return item
+        _, canonical_name, rest = _resolve_candidate(item[1:], mention_map)
+        if not canonical_name:
+            return item
+        if rest:
+            # Mention was stuck to following text; reinsert a separating space.
+            return f"@{canonical_name} {rest}"
+        return f"@{canonical_name}"
 
     return MENTION_PATTERN.sub(_replace_match, text)
