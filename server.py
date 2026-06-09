@@ -9,6 +9,7 @@ import inspect
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -25,7 +26,7 @@ from typing import Any, Optional
 from fastapi import FastAPI, File, Form, Header, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.auto_model import AutoModel
@@ -81,6 +82,9 @@ PERSONAL_CONTEXT_LIMIT = 10000
 MEMBER_CONTEXT_LIMIT = 5000
 
 SESSIONS_DIR = Path.home() / ".mano-asr" / "sessions"
+
+# Frontend static file directory for the visual management page (mention entries)
+WEB_DIR = Path(__file__).parent / "manoasr" / "web"
 
 _model: Optional[AutoModel] = None
 _model_lock = Lock()
@@ -531,6 +535,11 @@ async def transcribe_voice(
         )
         
         try:
+            # ASR often transcribes the spoken "@" (pronounced "at") as the
+            # Chinese word "艾特". Normalize it back to @ (along with any trailing
+            # space) before running the mention replacement.
+            # e.g. "艾特维杰" / "艾特 维杰" -> "@维杰"
+            transcript = re.sub(r"艾特\s*", "@", transcript)
             transcript = mention.replace(transcript)
         except Exception as exc:
             logger.exception("mention.replace failed: %s", exc)
@@ -594,6 +603,93 @@ def voice_config():
         "engine": ENGINE_NAME,
         "edit_mode": "append",
     }
+
+
+# ---------------------------------------------------------------------------
+# Visual management for mention entries: page + static assets + CRUD API
+# Data layer in utils/mention.py, frontend in manoasr/web/
+# ---------------------------------------------------------------------------
+
+_STATIC_MEDIA_TYPES = {".css": "text/css", ".js": "application/javascript", ".svg": "image/svg+xml"}
+
+
+@app.get("/favicon.ico")
+def favicon():
+    """Serve the site favicon (a bold pink M)."""
+    icon_path = WEB_DIR / "favicon.svg"
+    if not icon_path.exists():
+        return JSONResponse({}, status_code=204)
+    return FileResponse(icon_path, media_type="image/svg+xml")
+
+
+@app.get("/mentions")
+def mentions_page(request: Request):
+    """Return the mention entries management page."""
+    html_path = WEB_DIR / "mentions.html"
+    if not html_path.exists():
+        return api_error(404, "mentions page not found", request=request)
+    return HTMLResponse(html_path.read_text(encoding="utf-8"))
+
+
+@app.get("/static/{filename}")
+def mentions_static(filename: str, request: Request):
+    """Serve css/js static files under manoasr/web/ (allowlist + path-traversal guard)."""
+    suffix = Path(filename).suffix
+    if suffix not in _STATIC_MEDIA_TYPES or "/" in filename or ".." in filename:
+        return api_error(404, "not found", request=request)
+    file_path = WEB_DIR / filename
+    if not file_path.exists():
+        return api_error(404, "not found", request=request)
+    return FileResponse(file_path, media_type=_STATIC_MEDIA_TYPES[suffix])
+
+
+@app.get("/v1/mentions")
+def mentions_list(request: Request):
+    try:
+        return {"ok": True, "items": mention.list_user_mentions()}
+    except Exception as exc:  # noqa: BLE001
+        return api_error(500, "failed to list mentions", exc=exc, request=request)
+
+
+@app.post("/v1/mentions")
+async def mentions_add(request: Request):
+    try:
+        body = await request.json()
+        items = mention.add_user_mention(
+            body.get("nickname"), body.get("canonical_name")
+        )
+        return {"ok": True, "items": items}
+    except ValueError as exc:
+        return api_error(400, str(exc), request=request)
+    except Exception as exc:  # noqa: BLE001
+        return api_error(500, "failed to add mention", exc=exc, request=request)
+
+
+@app.put("/v1/mentions/{index}")
+async def mentions_update(index: int, request: Request):
+    try:
+        body = await request.json()
+        items = mention.update_user_mention(
+            index, body.get("nickname"), body.get("canonical_name")
+        )
+        return {"ok": True, "items": items}
+    except ValueError as exc:
+        return api_error(400, str(exc), request=request)
+    except IndexError as exc:
+        return api_error(404, str(exc), request=request)
+    except Exception as exc:  # noqa: BLE001
+        return api_error(500, "failed to update mention", exc=exc, request=request)
+
+
+@app.delete("/v1/mentions/{index}")
+def mentions_delete(index: int, request: Request):
+    try:
+        items = mention.delete_user_mention(index)
+        return {"ok": True, "items": items}
+    except IndexError as exc:
+        return api_error(404, str(exc), request=request)
+    except Exception as exc:  # noqa: BLE001
+        return api_error(500, "failed to delete mention", exc=exc, request=request)
 
 
 def parse_args() -> argparse.Namespace:

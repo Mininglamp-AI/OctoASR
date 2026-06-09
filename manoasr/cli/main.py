@@ -19,7 +19,7 @@ except ImportError:
 import click
 
 from manoasr import __version__
-from manoasr.cli.commands import service, transcribe, port, model, config, logs, doctor
+from manoasr.cli.commands import service, transcribe, port, model, config, logs, doctor, mentions
 
 
 @click.group(invoke_without_command=True)
@@ -49,6 +49,7 @@ cli.add_command(model.model)
 cli.add_command(config.config)
 cli.add_command(logs.logs)
 cli.add_command(doctor.doctor)
+cli.add_command(mentions.mentions)
 
 
 @cli.command("help")
@@ -73,6 +74,7 @@ def help_cmd():
     config        Config management (show/reset)
     logs          View logs (--errors/--stats)
     doctor        Environment check
+    mentions      Manage @mention replacements (opens web page)
 
   Other:
     help          Show this help
@@ -85,6 +87,8 @@ def help_cmd():
     mano-asr model use <name>         Switch model
     mano-asr logs --stats             Show log stats
     mano-asr logs --errors            Show error logs only
+    mano-asr mentions                 Open @mention replacements page
+    mano-asr mentions --no-browser    Print the page link only
 """
     click.echo(help_text)
 

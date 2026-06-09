@@ -4,8 +4,16 @@ import os
 import re
 import json
 
+MENTION_DIR = '~/.mano-asr/mentions'
 MENTION_OPENCLAW = '~/.mano-asr/mentions/openclaw.json'
 MENTION_USER = '~/.mano-asr/mentions/user.json'
+
+# Valid empty templates written when files are missing, so later loading
+# never fails due to malformed format.
+MENTION_DEFAULTS = {
+    MENTION_OPENCLAW: {"persons": {}},
+    MENTION_USER: [],
+}
 MENTION_PATTERN = re.compile(
     r"@[A-Za-z0-9_\u4e00-\u9fff丨·]+"
     r"(?:[（(][A-Za-z0-9_丨·]+[）)])?"
@@ -27,6 +35,24 @@ MENTION_MAP = {
     "Sokrates": "苏格拉底",
     "科特": "Kotter",
 }
+
+
+def _ensure_mention_files():
+    """Ensure the mentions directory and config files exist, creating empty
+    templates if missing.
+
+    Failures (e.g. insufficient permissions) are not raised; callers fall back
+    to using only the built-in MENTION_MAP.
+    """
+    try:
+        os.makedirs(os.path.expanduser(MENTION_DIR), exist_ok=True)
+        for path, default in MENTION_DEFAULTS.items():
+            expanded_path = os.path.expanduser(path)
+            if not os.path.exists(expanded_path):
+                with open(expanded_path, 'w', encoding='utf-8') as f:
+                    json.dump(default, f, ensure_ascii=False, indent=2)
+    except OSError:
+        pass
 
 
 def _load_json_file(path):
@@ -83,10 +109,92 @@ def _load_user_mentions(mention_map):
 
 
 def _load_mention_map():
+    _ensure_mention_files()
     mention_map = dict(MENTION_MAP)
     _load_openclaw_mentions(mention_map)
     _load_user_mentions(mention_map)
     return mention_map
+
+
+# ---------------------------------------------------------------------------
+# CRUD for user.json (used by the visual management page)
+# Entry format: {"nickname": "...", "canonical_name": "..."}
+# Write format is strictly aligned with _load_user_mentions read logic;
+# changes take effect on the next transcription immediately.
+# ---------------------------------------------------------------------------
+
+def _save_user_mentions(items):
+    _ensure_mention_files()
+    expanded_path = os.path.expanduser(MENTION_USER)
+    with open(expanded_path, 'w', encoding='utf-8') as f:
+        json.dump(items, f, ensure_ascii=False, indent=2)
+
+
+def list_user_mentions():
+    """Return all entries in user.json; returns an empty list if missing or unparseable."""
+    _ensure_mention_files()
+    data = _load_json_file(MENTION_USER)
+    if not isinstance(data, list):
+        return []
+
+    items = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        nickname = item.get("nickname")
+        canonical_name = item.get("canonical_name")
+        if nickname and canonical_name:
+            items.append({"nickname": nickname, "canonical_name": canonical_name})
+    return items
+
+
+def _validate_pair(nickname, canonical_name):
+    if not isinstance(nickname, str) or not isinstance(canonical_name, str):
+        raise ValueError("nickname and canonical_name must be strings")
+    nickname = nickname.strip()
+    canonical_name = canonical_name.strip()
+    if not nickname or not canonical_name:
+        raise ValueError("nickname and canonical_name must not be empty")
+    return nickname, canonical_name
+
+
+def add_user_mention(nickname, canonical_name):
+    """Add an entry; if nickname already exists, update its canonical_name. Returns the full list."""
+    nickname, canonical_name = _validate_pair(nickname, canonical_name)
+    items = list_user_mentions()
+
+    for item in items:
+        if item["nickname"] == nickname:
+            item["canonical_name"] = canonical_name
+            break
+    else:
+        items.append({"nickname": nickname, "canonical_name": canonical_name})
+
+    _save_user_mentions(items)
+    return items
+
+
+def update_user_mention(index, nickname, canonical_name):
+    """Update the entry at the given index. Raises IndexError if out of range. Returns the full list."""
+    nickname, canonical_name = _validate_pair(nickname, canonical_name)
+    items = list_user_mentions()
+    if index < 0 or index >= len(items):
+        raise IndexError(f"mention index out of range: {index}")
+
+    items[index] = {"nickname": nickname, "canonical_name": canonical_name}
+    _save_user_mentions(items)
+    return items
+
+
+def delete_user_mention(index):
+    """Delete the entry at the given index. Raises IndexError if out of range. Returns the full list."""
+    items = list_user_mentions()
+    if index < 0 or index >= len(items):
+        raise IndexError(f"mention index out of range: {index}")
+
+    items.pop(index)
+    _save_user_mentions(items)
+    return items
 
 
 def extract(text):

@@ -28,6 +28,7 @@ Core capabilities:
 - 🔒 **Fully local, privacy-first** — audio and transcripts never leave your machine.
 - ✂️ **VAD segmentation** — optional FSMN VAD splits long audio and transcribes segment by segment.
 - 🧩 **Pluggable engines** — supports Fun-ASR-Nano, Qwen3-ASR and more base models, switchable with one command.
+- 🏷️ **@Mention replacement** — auto-fix nicknames and transliterated names in transcripts via a visual page. See [Mentions](docs/mentions.md).
 - ⚡ **One-command start** — install via `brew install`, then `mano-asr start`.
 
 ---
@@ -171,6 +172,17 @@ curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
 ```
 
 > Full API fields, limits and auth are documented under [API](#en-api).
+
+### @Mention replacement
+
+Auto-replace casual nicknames and transliterated names in transcripts with the canonical spelling you want (e.g. `@小明` → `@Xiaoming`). Manage entries on a visual web page — no JSON editing required:
+
+```bash
+mano-asr start        # Start the service (if not running)
+mano-asr mentions     # Open the management page in your browser
+```
+
+> 📖 Full guide: [Mentions](docs/mentions.md)
 
 ---
 

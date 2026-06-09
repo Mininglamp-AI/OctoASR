@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mention Replacements · mano-asr</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+  <link rel="stylesheet" href="/static/mentions.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Mention Replacements</h1>
+      <p class="hint">
+        Text like <code>@nickname</code> in transcripts will be replaced with
+        <code>@canonical_name</code>. Changes take effect immediately — no restart needed.
+      </p>
+    </header>
+
+    <section class="add-card">
+      <h2>Add a replacement</h2>
+      <form id="add-form" class="add-form" autocomplete="off">
+        <input type="text" id="add-nickname" placeholder="Nickname (e.g. xiaoming)" required>
+        <span class="arrow">→</span>
+        <input type="text" id="add-canonical" placeholder="Canonical name (e.g. Xiaoming)" required>
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+    </section>
+
+    <section class="list-card">
+      <div id="message" class="message" hidden></div>
+      <table id="table">
+        <thead>
+          <tr>
+            <th>Nickname</th>
+            <th>Canonical name</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div id="empty" class="empty" hidden>No replacements yet. Add one above.</div>
+    </section>
+  </main>
+
+  <script src="/static/mentions.js"></script>
+</body>
+</html>
