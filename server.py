@@ -26,7 +26,7 @@ from typing import Any, Optional
 from fastapi import FastAPI, File, Form, Header, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.auto_model import AutoModel
@@ -618,7 +618,7 @@ def favicon():
     """Serve the site favicon (a bold pink M)."""
     icon_path = WEB_DIR / "favicon.svg"
     if not icon_path.exists():
-        return JSONResponse({}, status_code=204)
+        return Response(status_code=204)
     return FileResponse(icon_path, media_type="image/svg+xml")
 
 

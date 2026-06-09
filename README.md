@@ -28,7 +28,7 @@ Core capabilities:
 - 🔒 **Fully local, privacy-first** — audio and transcripts never leave your machine.
 - ✂️ **VAD segmentation** — optional FSMN VAD splits long audio and transcribes segment by segment.
 - 🧩 **Pluggable engines** — supports Fun-ASR-Nano, Qwen3-ASR and more base models, switchable with one command.
-- 🏷️ **@Mention replacement** — auto-fix nicknames and transliterated names in transcripts via a visual page. See [Mentions](docs/mentions.md).
+- 🏷️ **@Mention replacement** — auto-fix nicknames and transliterated names in transcripts via a visual page. See [Mentions](docs/mentions/README.md).
 - ⚡ **One-command start** — install via `brew install`, then `mano-asr start`.
 
 ---
@@ -51,6 +51,7 @@ Core capabilities:
 
 See the full release history on the **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** page.
 
+- **2026-06-09** — Added @mention replacement with a visual management page (`mano-asr mentions`) for editing nickname → canonical-name mappings; spoken "艾特" is normalized to `@` before replacement. (v0.1.15 fixes packaging so the web page ships in the Homebrew build.)
 - **2026-05-29** — Released the first ASR model for internet office scenarios, with written-style transcription output and accurate recognition of industry-specific terminology.
 - **2026-05-26** — First release: FastAPI transcription service, FunASR-Nano engine, FSMN VAD, hotword extraction, session logging.
 
@@ -182,7 +183,7 @@ mano-asr start        # Start the service (if not running)
 mano-asr mentions     # Open the management page in your browser
 ```
 
-> 📖 Full guide: [Mentions](docs/mentions.md)
+> 📖 Full guide: [Mentions](docs/mentions/README.md)
 
 ---
 
