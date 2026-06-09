@@ -32,5 +32,8 @@ mano-asr = "manoasr.cli.main:main"
 [tool.setuptools.packages.find]
 include = ["manoasr*"]
 
+[tool.setuptools.package-data]
+manoasr = ["web/*"]
+
 [tool.setuptools.dynamic]
 version = { attr = "manoasr.__version__" }
