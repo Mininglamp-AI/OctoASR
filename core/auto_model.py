@@ -21,10 +21,9 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 import numpy as np
 import mlx.core as mx
 
-from core.models.fsmn.model import Model as FunASRAutoModel
+# Lazy imports — only loaded when actually needed
 from utils.load_utils import load_audio
 from core.models.funasr import Model as FunASRMLXModel
-from core.models.qwen3_asr import Model as Qwen3ASRModel
 
 
 MODEL_REGISTRY = {
@@ -33,12 +32,6 @@ MODEL_REGISTRY = {
         "prompt_key": "initial_prompt",
         "supports_task": True,
         "supports_formal": True,
-    },
-    "qwen3_asr": {
-        "cls": Qwen3ASRModel,
-        "prompt_key": "system_prompt",
-        "supports_task": False,
-        "supports_formal": False,
     },
 }
 
@@ -146,12 +139,16 @@ class AutoModel:
 
         self.vad_model = None
         if vad_model is not None:
+            from core.models.fsmn.model import Model as FunASRAutoModel
             self.vad_model = FunASRAutoModel.from_pretrained(vad_model)
         
         if enable_cider:
             from cider import convert_model, is_available
             if is_available():
                 convert_model(self.model.llm.model)
+
+        # Speaker diarizer (lazy-init)
+        self._diarizer: Optional[SpeakerDiarizer] = None
 
     def generate(self, input: Union[str, Path], formal=False, hotwords: Optional[List[str] | str] = None, **cfg: Any) -> str:
         """Transcribe one local audio file and return only the text."""
@@ -186,6 +183,152 @@ class AutoModel:
         return separator.join(texts).strip()
 
     transcribe = generate
+
+    # ── Speaker diarization ─────────────────────────────────────
+
+    def transcribe_with_diarization(
+        self,
+        input: Union[str, Path],
+        formal=False,
+        hotwords: Optional[List[str] | str] = None,
+        **cfg: Any,
+    ) -> Dict[str, Any]:
+        """Transcribe audio and assign speaker labels to each segment.
+
+        Requires the ``funasr`` and ``soundfile`` packages.
+
+        Parameters
+        ----------
+        input : str or Path
+            Path to a local audio file (WAV / MP3 / FLAC / …).
+        formal : bool
+            Whether to use formal ASR mode.
+        hotwords : list of str or str, optional
+            Hotwords / context to improve accuracy.
+        **cfg
+            Additional keyword arguments forwarded to the ASR pipeline.
+
+        Returns
+        -------
+        dict with keys:
+            - "text" : str — full concatenated transcript
+            - "segments" : list of dict — per-segment details, each with
+                ``start_s``, ``end_s``, ``text``, ``speaker`` (int label).
+            - "num_speakers" : int
+        """
+        audio_path = Path(input).expanduser()
+        if not audio_path.exists():
+            raise FileNotFoundError(f"Audio file not found: {audio_path}")
+
+        if self.vad_model is None:
+            # No VAD → transcribe whole file, no diarization
+            text = self._recognize_file(audio_path, cfg, formal=formal)
+            return {
+                "text": text,
+                "segments": [{"start_s": 0, "end_s": 0, "text": text, "speaker": 0}],
+                "num_speakers": 1,
+            }
+
+        # Detect VAD segments
+        vad_segments = self._detect_segments(audio_path, cfg)
+        if not vad_segments:
+            return {"text": "", "segments": [], "num_speakers": 0}
+
+        waveform = self._load_waveform(audio_path)
+
+        # Build context from hotwords
+        context = self._build_context(hotwords, formal)
+
+        # Transcribe each segment
+        kwargs = self._build_generate_kwargs(cfg, context, formal=formal)
+        raw_segments: List[Dict[str, Any]] = []
+        min_segment_samples = max(
+            int(int(cfg.get("min_segment_ms", self.min_segment_ms)) * self.fs / 1000),
+            1,
+        )
+        for start_ms, end_ms in vad_segments:
+            start = max(int(start_ms * self.fs / 1000), 0)
+            end = min(int(end_ms * self.fs / 1000), len(waveform))
+            if end - start < min_segment_samples:
+                continue
+            clip = waveform[start:end].astype(np.float32, copy=False)
+            output = self.model.generate(clip, **kwargs)
+            text = (getattr(output, "text", "") or "").strip()
+            raw_segments.append({
+                "start_s": start_ms / 1000.0,
+                "end_s": end_ms / 1000.0,
+                "text": text,
+                "speaker": 0,
+            })
+
+        if not raw_segments:
+            return {"text": "", "segments": [], "num_speakers": 0}
+
+        # Diarization
+        try:
+            self._init_diarizer()
+            labels, num_spk = self._diarizer.diarize(
+                str(audio_path),
+                vad_segments,
+                audio_array=waveform,
+                sample_rate=self.fs,
+            )
+            for idx, seg in enumerate(raw_segments):
+                seg["speaker"] = labels[idx] if idx < len(labels) else 0
+        except ImportError as exc:
+            logging.warning("Diarization disabled: %s", exc)
+            num_spk = 1
+        except Exception as exc:
+            logging.warning("Diarization failed (%s), using single speaker", exc)
+            num_spk = 1
+
+        # Build labeled text
+        lines: List[str] = []
+        current_spk = None
+        for seg in raw_segments:
+            if not seg["text"]:
+                continue
+            spk = seg["speaker"]
+            if num_spk > 1 and spk != current_spk:
+                lines.append(f"\n[讲话人{spk}]：{seg['text']}")
+                current_spk = spk
+            elif num_spk > 1:
+                lines.append(seg["text"])
+            else:
+                lines.append(seg["text"])
+
+        separator = str(cfg.get("segment_separator", " "))
+        full_text = separator.join(lines).strip()
+
+        return {
+            "text": full_text,
+            "segments": raw_segments,
+            "num_speakers": num_spk,
+        }
+
+    # ── Private helpers ─────────────────────────────────────────
+
+    def _build_context(self, hotwords, formal):
+        if hotwords is not None and len(hotwords) > 0:
+            if isinstance(hotwords, str):
+                hotwords = [hotwords]
+            hotwords = ", ".join(hotwords)
+            context = (
+                "请结合上下文信息，更加准确地完成语音转写任务。"
+                "如果没有相关信息，我们会留空。\n\n\n**上下文信息：**\n\n\n"
+            )
+            if formal:
+                context += f"{hotwords}\n"
+            else:
+                context += f"热词列表：[{hotwords}]\n"
+            return context
+        return None
+
+    def _init_diarizer(self):
+        if self._diarizer is None:
+            from core.diarization import SpeakerDiarizer
+            self._diarizer = SpeakerDiarizer()
+            logging.info("Speaker diarizer initialised")
 
     def _build_generate_kwargs(
         self,
