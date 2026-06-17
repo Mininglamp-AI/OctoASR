@@ -38,7 +38,7 @@ MODEL_REGISTRY = {
         "cls": Qwen3ASRModel,
         "prompt_key": "system_prompt",
         "supports_task": False,
-        "supports_formal": False,
+        "supports_formal": True,
     },
 }
 
@@ -153,8 +153,9 @@ class AutoModel:
             if is_available():
                 convert_model(self.model.llm.model)
 
-    def generate(self, input: Union[str, Path], formal=False, hotwords: Optional[List[str] | str] = None, **cfg: Any) -> str:
+    def generate(self, input: Union[str, Path], content_style='original', hotwords: Optional[List[str] | str] = None, **cfg: Any) -> str:
         """Transcribe one local audio file and return only the text."""
+        assert content_style is not None and content_style in ['original', 'informal', 'formal']
         mx.reset_peak_memory()
         
         if hotwords is not None and len(hotwords) > 0:
@@ -162,10 +163,7 @@ class AutoModel:
                 hotwords = [hotwords]
             hotwords = ", ".join(hotwords)
             context = "请结合上下文信息，更加准确地完成语音转写任务。如果没有相关信息，我们会留空。\n\n\n**上下文信息：**\n\n\n"
-            if formal:
-                context += f"{hotwords}\n"
-            else:
-                context += f"热词列表：[{hotwords}]\n"
+            context += f"热词列表：[{hotwords}]\n"
         else:
             context = None
 
@@ -174,14 +172,14 @@ class AutoModel:
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
         if self.vad_model is None:
-            return self._recognize_file(audio_path, cfg, context=context, formal=formal)
+            return self._recognize_file(audio_path, cfg, context=context, content_style=content_style)
 
         vad_segments = self._detect_segments(audio_path, cfg)
         if not vad_segments:
             return ""
         waveform = self._load_waveform(audio_path)
 
-        texts = self._recognize_segments(waveform, vad_segments, cfg, context=context, formal=formal)
+        texts = self._recognize_segments(waveform, vad_segments, cfg, context=context, content_style=content_style)
         separator = str(cfg.get("segment_separator", " "))
         return separator.join(texts).strip()
 
@@ -191,20 +189,28 @@ class AutoModel:
         self,
         cfg: Dict[str, Any],
         context: Optional[str] = None,
-        formal: bool = False,
+        content_style: str = None,
     ) -> Dict[str, Any]:
         """Build kwargs for model.generate(), adapting to the active backend."""
         kwargs = self._asr_kwargs(cfg)
-        kwargs[self._prompt_key] = context
+        # kwargs[self._prompt_key] = context
         if not self._supports_task:
             kwargs.pop("task", None)
             kwargs.pop("target_language", None)
-        if self._supports_formal:
-            kwargs["formal"] = formal
+        
+        context = context if context is not None else ''
+        if content_style is not None and content_style == 'informal':
+            kwargs['system_prompt'] = 'You are a helpful assistant.'
+            kwargs['user_prompt'] = context + '语音转写，将音频内容逐字忠实转录为文本，以音频中的真实语音为唯一依据；完整保留所有口语特征，包括重复、语气词、停顿、修正、方言用词和语序；不润色、不省略、不归纳、不补充：'
+        elif content_style is not None and content_style == 'formal':
+            kwargs['system_prompt'] = 'You are a helpful assistant.'
+            kwargs['user_prompt'] = context + '语音转写，实现口语转书面语，转写结果需要结构化表达、去除口语冗余，并在保留原始语气和情绪的前提下输出可直接用于书面文档的规范文字：'
+        else:
+            kwargs[self._prompt_key] = context
         return kwargs
 
-    def _recognize_file(self, audio_path: Path, cfg: Dict[str, Any], context: Optional[str] = None, formal: bool = False) -> str:
-        kwargs = self._build_generate_kwargs(cfg, context, formal=formal)
+    def _recognize_file(self, audio_path: Path, cfg: Dict[str, Any], context: Optional[str] = None, content_style: str = None) -> str:
+        kwargs = self._build_generate_kwargs(cfg, context, content_style=content_style)
         output = self.model.generate(str(audio_path), **kwargs)
         return (getattr(output, "text", "") or "").strip()
 
@@ -315,9 +321,10 @@ class AutoModel:
         vad_segments: Iterable[List[int]],
         cfg: Dict[str, Any],
         context: Optional[str] = None,
-        formal: bool = False
+        content_style: str = None,
     ) -> List[str]:
-        kwargs = self._build_generate_kwargs(cfg, context, formal=formal)
+        kwargs = self._build_generate_kwargs(cfg, context, content_style=content_style)
+        
         texts: List[str] = []
         min_segment_samples = max(
             int(int(cfg.get("min_segment_ms", self.min_segment_ms)) * self.fs / 1000),

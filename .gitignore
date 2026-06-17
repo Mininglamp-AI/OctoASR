@@ -32,5 +32,7 @@ sessions/
 exp/
 docs/voice-transcribe-api.md
 scripts/eval/
+scripts/quant/
+scripts/benchmarks/
 # Homebrew local test formula
 homebrew/mano-asr-local.rb

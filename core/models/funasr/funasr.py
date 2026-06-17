@@ -421,7 +421,9 @@ class Model(nn.Module):
         task: str = TASK_TRANSCRIBE,
         target_language: str = "en",
         initial_prompt: Optional[str] = None,
-        formal: bool = False
+        formal: bool = False,
+        system_prompt: str | None = None,
+        user_prompt: str | None = None,
     ) -> mx.array:
         """
         Prepare input embeddings with prompt template.
@@ -453,19 +455,24 @@ class Model(nn.Module):
             else:
                 lang_name = SUPPORTED_LANGUAGES.get(language, language)
                 transcribe_prompt = f"语音转写成{lang_name}"
-            if formal:
-                transcribe_prompt += "，实现口语转书面语，转写结果需要结构化表达、去除口语冗余，并在保留原始语气和情绪的前提下输出可直接用于书面文档的规范文字"
+            # if formal:
+            #     transcribe_prompt += "，实现口语转书面语，转写结果需要结构化表达、去除口语冗余，并在保留原始语气和情绪的前提下输出可直接用于书面文档的规范文字"
             transcribe_prompt += "："
+            if user_prompt is not None:
+                transcribe_prompt = user_prompt
 
             if initial_prompt:
                 transcribe_prompt = f"{initial_prompt}\n{transcribe_prompt}"
             
+            system_prompt = system_prompt if system_prompt is not None else 'You are a helpful assistant.'
+
             prompt_before_audio = (
                 f"{self.config.im_start_token}system\n"
-                f"You are a helpful assistant.{self.config.im_end_token}\n"
+                f"{system_prompt}{self.config.im_end_token}\n"
                 f"{self.config.im_start_token}user\n"
                 f"{transcribe_prompt}"
             )
+            
             prompt_after_audio = (
                 f"{self.config.im_end_token}\n"
                 f"{self.config.im_start_token}assistant\n"
@@ -574,7 +581,9 @@ class Model(nn.Module):
         task: str = TASK_TRANSCRIBE,
         target_language: str = "en",
         initial_prompt: Optional[str] = None,
-        formal: bool = False
+        formal: bool = False,
+        system_prompt: str | None = None,
+        user_prompt: str | None = None,
     ) -> Generator[Tuple[int, mx.array], None, None]:
         """
         Stream tokens during generation.
@@ -616,7 +625,9 @@ class Model(nn.Module):
             task=task,
             target_language=target_language,
             initial_prompt=initial_prompt,
-            formal=formal
+            formal=formal,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt
         )
 
         # Initialize cache
@@ -668,6 +679,8 @@ class Model(nn.Module):
         verbose: bool = False,
         stream: bool = False,
         formal: bool = False,
+        system_prompt: str | None = None,
+        user_prompt: str | None = None,
         **kwargs,
     ) -> Union[STTOutput, Generator[str, None, STTOutput]]:
         """
@@ -759,7 +772,9 @@ class Model(nn.Module):
                 target_language=target_language,
                 initial_prompt=initial_prompt,
                 verbose=verbose,
-                formal=formal
+                formal=formal,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt
             )
 
         # Generate tokens
@@ -774,7 +789,9 @@ class Model(nn.Module):
             task=task,
             target_language=target_language,
             initial_prompt=initial_prompt,
-            formal=formal
+            formal=formal,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt
         ):
             tokens.append(token_id)
             if verbose:
@@ -821,7 +838,9 @@ class Model(nn.Module):
         target_language: str,
         initial_prompt: Optional[str],
         verbose: bool,
-        formal: bool = False
+        formal: bool = False,
+        system_prompt: str | None = None,
+        user_prompt: str | None = None,
     ) -> Generator[str, None, STTOutput]:
         """Internal streaming generator."""
         import time
@@ -840,7 +859,9 @@ class Model(nn.Module):
             task=task,
             target_language=target_language,
             initial_prompt=initial_prompt,
-            formal=formal
+            formal=formal,
+            system_prompt=system_prompt,
+            user_prompt=user_prompt
         ):
             tokens.append(token_id)
             chunk = self._tokenizer.decode([token_id])

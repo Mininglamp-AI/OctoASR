@@ -530,7 +530,7 @@ async def transcribe_voice(
                 # hotwords=hotwords,
                 task="transcribe",
                 target_language="auto",  # zh
-                formal=True,
+                content_style='formal',
                 merge_vad=True,
         )
         
@@ -539,6 +539,7 @@ async def transcribe_voice(
             # Chinese word "艾特". Normalize it back to @ (along with any trailing
             # space) before running the mention replacement.
             # e.g. "艾特维杰" / "艾特 维杰" -> "@维杰"
+            transcript = transcript.replace('[NO_SPEECH]', '')
             transcript = re.sub(r"艾特\s*", "@", transcript)
             transcript = mention.replace(transcript)
         except Exception as exc:
