@@ -6,9 +6,9 @@
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
   <a href="https://github.com/Mininglamp-AI/mano-asr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/mano-asr?color=blue" alt="License"></a>
   <a href="https://github.com/Mininglamp-AI/mano-asr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/mano-asr?style=social" alt="Stars"></a>
-  <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
-  <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
-  <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
+  <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
+  <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
+  <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
 </p>
 
 <p align="center">
@@ -50,7 +50,7 @@ Core capabilities:
 ## Changelog
 
 See the full release history on the **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** page.
-
+- **2026-06-15** — Release the first ASR model built on Qwen3-ASR and tailored for internet office scenarios, supporting handwritten-style transcription output and accurate recognition of industry terminology. 
 - **2026-06-09** — Added @mention replacement with a visual management page (`mano-asr mentions`) for editing nickname → canonical-name mappings; spoken "艾特" is normalized to `@` before replacement. (v0.1.15 fixes packaging so the web page ships in the Homebrew build.)
 - **2026-05-29** — Released the first ASR model for internet office scenarios, with written-style transcription output and accurate recognition of industry-specific terminology.
 - **2026-05-26** — First release: FastAPI transcription service, FunASR-Nano engine, FSMN VAD, hotword extraction, session logging.
@@ -65,7 +65,8 @@ mano-asr uses a pluggable engine design and supports several mainstream ASR base
 
 | Model | Base model | Quant | Size | Languages | Links                                                                                                                                                                                                                                                                   |
 | --- | --- | --- | --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Mano-ASR-0.8B** (default) | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) ·[🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| **Mano-ASR-1.7B** (default) | Qwen3-ASR | 8bit | 1.7 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit) |
+| **Mano-ASR-0.8B** | Fun-ASR-Nano | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
 
