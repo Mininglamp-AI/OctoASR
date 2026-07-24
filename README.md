@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="docs/mano-asr-banner.svg" alt="octoasr" width="800">
+  <img src="docs/mano-asr-banner.svg" alt="OctoASR" width="800">
 </p>
 
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
-  <a href="https://github.com/Mininglamp-AI/mano-asr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/mano-asr?color=blue" alt="License"></a>
-  <a href="https://github.com/Mininglamp-AI/mano-asr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/mano-asr?style=social" alt="Stars"></a>
+  <a href="https://github.com/Mininglamp-AI/octoasr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/octoasr?color=blue" alt="License"></a>
+  <a href="https://github.com/Mininglamp-AI/octoasr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/octoasr?style=social" alt="Stars"></a>
   <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
   <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
   <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
@@ -19,7 +19,7 @@
 
 ## Introduction
 
-**octoasr** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **internet / IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, octoasr accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
+**OctoASR** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **internet / IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, OctoASR accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
 
 Core capabilities:
 
@@ -49,7 +49,7 @@ Core capabilities:
 
 ## Changelog
 
-See the full release history on the **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** page.
+See the full release history on the **[Releases](https://github.com/Mininglamp-AI/octoasr/releases)** page.
 - **2026-06-15** — Release the first ASR model built on Qwen3-ASR and tailored for internet office scenarios, supporting handwritten-style transcription output and accurate recognition of industry terminology. 
 - **2026-06-09** — Added @mention replacement with a visual management page (`octoasr mentions`) for editing nickname → canonical-name mappings; spoken "艾特" is normalized to `@` before replacement. (v0.1.15 fixes packaging so the web page ships in the Homebrew build.)
 - **2026-05-29** — Released the first ASR model for internet office scenarios, with written-style transcription output and accurate recognition of industry-specific terminology.
@@ -61,7 +61,7 @@ See the full release history on the **[Releases](https://github.com/Mininglamp-A
 
 ## Models
 
-octoasr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `octoasr model use <name>`.
+OctoASR uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `octoasr model use <name>`.
 
 | Model | Base model | Quant | Size | Languages | Links                                                                                                                                                                                                                                                                   |
 | --- | --- | --- | --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -94,7 +94,7 @@ octoasr doctor   # environment check
 brew install ffmpeg
 
 # 2. Clone + install
-git clone https://github.com/Mininglamp-AI/mano-asr.git
+git clone https://github.com/Mininglamp-AI/octoasr.git
 cd octoasr
 python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip
@@ -239,9 +239,9 @@ Copyright (c) 2026 MININGLAMP Technology.
 
 ## Acknowledgments
 
-octoasr would not be possible without these excellent open-source projects:
+OctoASR would not be possible without these excellent open-source projects:
 
-- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple's machine-learning framework and audio toolkit, the foundation of octoasr's local inference.
+- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple's machine-learning framework and audio toolkit, the foundation of OctoASR's local inference.
 - [**FunASR / FunAudioLLM**](https://github.com/modelscope/FunASR) — source of Fun-ASR-Nano and FSMN-VAD, providing strong Chinese speech recognition.
 - [**Qwen3**](https://github.com/QwenLM/Qwen3) — the base model behind the Qwen3-ASR engine.
 - [**mlx-community**](https://huggingface.co/mlx-community) — high-quality MLX quantized models.

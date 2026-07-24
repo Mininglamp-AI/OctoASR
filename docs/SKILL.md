@@ -1,6 +1,6 @@
-# octoasr × OpenClaw 本地语音转写集成指南
+# OctoASR × OpenClaw 本地语音转写集成指南
 
-> 在 Apple Silicon Mac 上，用 [octoasr](https://github.com/Mininglamp-AI/mano-asr) 为 [OpenClaw](https://github.com/openclaw/openclaw) 提供完全离线、零成本的语音转文字能力。无需任何云端 API Key。
+> 在 Apple Silicon Mac 上，用 [OctoASR](https://github.com/Mininglamp-AI/octoasr) 为 [OpenClaw](https://github.com/openclaw/openclaw) 提供完全离线、零成本的语音转文字能力。无需任何云端 API Key。
 
 ---
 
@@ -24,7 +24,7 @@
 - **软件**:
   - [Homebrew](https://brew.sh) 已安装
   - [OpenClaw](https://github.com/openclaw/openclaw) 已安装且 Gateway 正在运行
-  - `ffmpeg` （octoasr 依赖，brew 会自动安装）
+  - `ffmpeg` （OctoASR 依赖，brew 会自动安装）
 
 验证 OpenClaw 状态：
 
@@ -38,7 +38,7 @@ openclaw status
 
 ## 安装步骤
 
-### 1. 添加 Tap 并安装 octoasr
+### 1. 添加 Tap 并安装 OctoASR
 
 ```bash
 brew tap Mininglamp-AI/tap
@@ -88,7 +88,7 @@ octoasr status
 ```
 
 ```
-  octoasr Service Status
+  OctoASR Service Status
   ───────────────────────────────────
   Status: running
   PID: xxxxx
@@ -171,7 +171,7 @@ octoasr transcribe --format text /path/to/test.wav
 
 ### 混合配置（本地优先 + 云端兜底）
 
-如果你同时配置了云端 provider（如 OpenAI），可以让 octoasr 优先，失败时回退到云端：
+如果你同时配置了云端 provider（如 OpenAI），可以让 OctoASR 优先，失败时回退到云端：
 
 ```json
 {
@@ -211,7 +211,7 @@ octoasr transcribe --format text /path/to/test.wav
 | `models[].command` | string | 可执行文件名或完整路径 |
 | `models[].args` | string[] | 命令参数，`{{MediaPath}}` 由 OpenClaw 替换为实际音频路径 |
 | `models[].timeoutSeconds` | number | 超时秒数（默认 60，长音频建议 120） |
-| `--hotwords` | — | octoasr 的热词参数，提升专有名词识别准确率 |
+| `--hotwords` | — | OctoASR 的热词参数，提升专有名词识别准确率 |
 
 ---
 
@@ -239,7 +239,7 @@ openclaw config get tools.media.audio
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌───────────────────┐    ┌──────────────┐
-│  用户发送   │    │   OpenClaw   │    │    octoasr       │    │   AI 模型    │
+│  用户发送   │    │   OpenClaw   │    │    OctoASR       │    │   AI 模型    │
 │  语音消息   │───▶│  接收音频文件 │───▶│  本地 MLX 转写    │───▶│   处理文本   │
 └─────────────┘    └──────────────┘    └───────────────────┘    └──────────────┘
                                                 │
@@ -255,7 +255,7 @@ openclaw config get tools.media.audio
 3. 检查文件大小是否超过 `maxBytes` 限制
 4. 按 `models` 数组顺序调用第一个可用的转写引擎
 5. 执行 `octoasr transcribe --format text <音频路径>`
-6. octoasr 在本地通过 MLX 完成推理，输出纯文本到 stdout
+6. OctoASR 在本地通过 MLX 完成推理，输出纯文本到 stdout
 7. OpenClaw 捕获输出，设置 `{{Transcript}}` 模板变量
 8. 将转写文本作为消息内容传递给 AI 模型处理
 9. AI 模型基于文字内容生成回复
@@ -346,7 +346,7 @@ octoasr config show
 }
 ```
 
-### 指定 octoasr 完整路径（PATH 找不到时）
+### 指定 OctoASR 完整路径（PATH 找不到时）
 
 ```json
 {
@@ -384,7 +384,7 @@ octoasr config show
 检查清单：
 
 ```bash
-# 1. 确认 octoasr 可用
+# 1. 确认 OctoASR 可用
 octoasr --version
 
 # 2. 确认环境正常
@@ -412,7 +412,7 @@ openclaw gateway restart --verbose
 - 确认 ffmpeg 已安装：`ffmpeg -version`
 - 尝试切换模型：`octoasr model use Mano-ASR-0.8B-Instruct-1.0-MLX-8bit`
 
-### 问题：找不到 octoasr 命令
+### 问题：找不到 OctoASR 命令
 
 ```bash
 # 确认安装位置
@@ -427,7 +427,7 @@ which octoasr
 
 ## 更新与卸载
 
-### 更新 octoasr
+### 更新 OctoASR
 
 ```bash
 brew upgrade octoasr

@@ -1,12 +1,12 @@
 class Octoasr < Formula
   desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
-  homepage "https://github.com/Mininglamp-AI/mano-asr"
-  url "https://github.com/Mininglamp-AI/mano-asr/archive/refs/tags/v0.1.7.tar.gz"
+  homepage "https://github.com/Mininglamp-AI/octoasr"
+  url "https://github.com/Mininglamp-AI/octoasr/archive/refs/tags/v0.1.7.tar.gz"
   sha256 ""
   license "MIT"
 
   bottle do
-    root_url "https://github.com/Mininglamp-AI/mano-asr/releases/download/v0.1.7"
+    root_url "https://github.com/Mininglamp-AI/octoasr/releases/download/v0.1.7"
     sha256 cellar: :any_skip_relocation, arm64_tahoe: "ec5fbe2acd69b36053bbd56d8fdfcd644879cb201785641f93988f4b2a7cb39d"
   end
 

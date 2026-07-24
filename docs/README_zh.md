@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="mano-asr-banner.svg" alt="octoasr" width="800">
+  <img src="mano-asr-banner.svg" alt="OctoASR" width="800">
 </p>
 
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
-  <a href="https://github.com/Mininglamp-AI/mano-asr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/mano-asr?color=blue" alt="License"></a>
-  <a href="https://github.com/Mininglamp-AI/mano-asr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/mano-asr?style=social" alt="Stars"></a>
+  <a href="https://github.com/Mininglamp-AI/octoasr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/octoasr?color=blue" alt="License"></a>
+  <a href="https://github.com/Mininglamp-AI/octoasr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/octoasr?style=social" alt="Stars"></a>
   <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
   <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
   <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
@@ -19,7 +19,7 @@
 
 ## 简介
 
-**octoasr** 是一款面向垂直领域的本地语音识别服务，基于 [Cider](https://github.com/Mininglamp-AI/cider) 针对 Apple Silicon 深度优化，专为 **互联网 / IT 办公** 场景打造，深度适配会议纪要、技术讨论、产品评审、研发口播等高频办公场景。依托对领域语料的针对性优化，octoasr 能够准确识别英文术语、缩写、产品名等专有名词（如 `Kubernetes`、`FastAPI`、`PRD`、`Code Review`）与中英混合表达，有效应对通用模型常见的术语误转、中英混说断句混乱等问题，实现"听得清、懂行话、写得准"。服务完全本地运行，开箱即用，音频与转写数据不出本机。
+**OctoASR** 是一款面向垂直领域的本地语音识别服务，基于 [Cider](https://github.com/Mininglamp-AI/cider) 针对 Apple Silicon 深度优化，专为 **互联网 / IT 办公** 场景打造，深度适配会议纪要、技术讨论、产品评审、研发口播等高频办公场景。依托对领域语料的针对性优化，OctoASR 能够准确识别英文术语、缩写、产品名等专有名词（如 `Kubernetes`、`FastAPI`、`PRD`、`Code Review`）与中英混合表达，有效应对通用模型常见的术语误转、中英混说断句混乱等问题，实现"听得清、懂行话、写得准"。服务完全本地运行，开箱即用，音频与转写数据不出本机。
 
 核心能力：
 
@@ -49,7 +49,7 @@
 
 ## 更新动态
 
-完整的版本更新记录见 **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** 页面。
+完整的版本更新记录见 **[Releases](https://github.com/Mininglamp-AI/octoasr/releases)** 页面。
 
 - **2026-06-09** — 新增 @提及替换功能，提供可视化管理页面（`octoasr mentions`）编辑昵称 → 规范名映射；转写中的「艾特」会先归一化为 `@` 再替换。（v0.1.15 修复打包问题，使网页随 Homebrew 版一并安装。）
 - **2026-05-29** — 发布首个面向互联网办公场景的 ASR 模型,支持书面化转录输出,精准识别行业专业术语。
@@ -61,7 +61,7 @@
 
 ## 适配模型
 
-octoasr 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。可通过 `octoasr model use <name>` 一行命令切换：
+OctoASR 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。可通过 `octoasr model use <name>` 一行命令切换：
 
 | 模型 | 基座模型 | 量化 | 大小 | 语言 | 访问网站 |
 | --- | --- | --- | --- | --- | --- |
@@ -93,7 +93,7 @@ octoasr doctor   # 环境自检
 brew install ffmpeg
 
 # 2. 克隆 + 安装
-git clone https://github.com/Mininglamp-AI/mano-asr.git
+git clone https://github.com/Mininglamp-AI/octoasr.git
 cd octoasr
 python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip
@@ -238,9 +238,9 @@ Copyright (c) 2026 MININGLAMP Technology.
 
 ## Acknowledgments
 
-octoasr 的实现离不开以下优秀的开源项目，在此一并致谢：
+OctoASR 的实现离不开以下优秀的开源项目，在此一并致谢：
 
-- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple 的机器学习框架及音频工具链，是 octoasr 本地推理的基础。
+- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple 的机器学习框架及音频工具链，是 OctoASR 本地推理的基础。
 - [**FunASR / FunAudioLLM**](https://github.com/modelscope/FunASR) — Fun-ASR-Nano 与 FSMN-VAD 的来源，提供了强大的中文语音识别能力。
 - [**Qwen3**](https://github.com/QwenLM/Qwen3) — 通义千问团队，Qwen3-ASR 引擎的基座模型。
 - [**mlx-community**](https://huggingface.co/mlx-community) — 提供了高质量的 MLX 量化模型。

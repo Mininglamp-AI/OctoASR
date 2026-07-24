@@ -56,9 +56,9 @@ MODELSCOPE_REPO_MAP = {
     "fsmn-vad-mlx": "Mininglamp2718/fsmn-vad-mlx",
 }
 
-GITHUB_RELEASE_BASE_URL = "https://github.com/Mininglamp-AI/mano-asr/releases/download"
+GITHUB_RELEASE_BASE_URL = "https://github.com/Mininglamp-AI/octoasr/releases/download"
 
-GITHUB_REPO = "Mininglamp-AI/mano-asr"
+GITHUB_REPO = "Mininglamp-AI/octoasr"
 UPDATE_CACHE_FILE = CONFIG_DIR / "update_check.json"
 CHECK_INTERVAL = 86400
 
