@@ -4,9 +4,9 @@ import os
 import re
 import json
 
-MENTION_DIR = '~/.mano-asr/mentions'
-MENTION_OPENCLAW = '~/.mano-asr/mentions/openclaw.json'
-MENTION_USER = '~/.mano-asr/mentions/user.json'
+MENTION_DIR = '~/.octoasr/mentions'
+MENTION_OPENCLAW = '~/.octoasr/mentions/openclaw.json'
+MENTION_USER = '~/.octoasr/mentions/user.json'
 
 # Valid empty templates written when files are missing, so later loading
 # never fails due to malformed format.

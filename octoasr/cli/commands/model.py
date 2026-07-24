@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr model - model management"""
+"""octoasr model - model management"""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from pathlib import Path
 
 import click
 
-from manoasr.cli.utils.config import load_config, save_config, config_exists, get_models_dir
-from manoasr.cli.utils.console import success, error, warning, info, print_header, print_footer, interactive_select
-from manoasr.cli.utils.constants import HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR, USER_MODELS_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE, model_namespace
-from manoasr.cli.utils.process import get_pid, stop_process
+from octoasr.cli.utils.config import load_config, save_config, config_exists, get_models_dir
+from octoasr.cli.utils.console import success, error, warning, info, print_header, print_footer, interactive_select
+from octoasr.cli.utils.constants import HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR, USER_MODELS_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE, model_namespace
+from octoasr.cli.utils.process import get_pid, stop_process
 
 
 def find_models(models_dir: Path) -> dict:
@@ -74,7 +74,7 @@ def switch_engine(config: dict, engine_key: str) -> None:
     model_path = resolve_model_path(spec["default_model"])
     if not model_path:
         click.echo(info(f"Downloading {spec['label']} model..."))
-        from manoasr.cli.utils.download import ensure_model
+        from octoasr.cli.utils.download import ensure_model
         model_path = ensure_model(spec["default_model"], is_vad=False)
 
     config["models"]["asr"] = str(model_path)
@@ -119,10 +119,10 @@ def restart_service_if_running() -> None:
 
     click.echo(info("Restarting service..."))
     if not stop_process(pid):
-        click.echo(warning("Failed to stop service, please restart manually: mano-asr restart"))
+        click.echo(warning("Failed to stop service, please restart manually: octoasr restart"))
         return
 
-    from manoasr.cli.commands.service import _start_daemon, get_configured_port
+    from octoasr.cli.commands.service import _start_daemon, get_configured_port
 
     config = load_config()
     port = get_configured_port()
@@ -138,7 +138,7 @@ def model(ctx):
         return
 
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     config = load_config()
@@ -148,7 +148,7 @@ def model(ctx):
     asr_models = models["asr"]
 
     if not asr_models:
-        click.echo(error("No ASR models found. Run 'mano-asr start' to download one."))
+        click.echo(error("No ASR models found. Run 'octoasr start' to download one."))
         raise SystemExit(1)
 
     options = [
@@ -171,7 +171,7 @@ def model_info():
     """Show current model info"""
 
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     config = load_config()
@@ -193,7 +193,7 @@ def model_list():
     """List available models"""
 
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     config = load_config()
@@ -237,7 +237,7 @@ def model_use(model_name: str, model_type: str):
     """
 
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     if model_name in MODEL_TYPES:
@@ -274,7 +274,7 @@ def model_use(model_name: str, model_type: str):
 
     if not found_path:
         click.echo(error(f"Model not found: {model_name}"))
-        click.echo(info("Run 'mano-asr model list' to see available models"))
+        click.echo(info("Run 'octoasr model list' to see available models"))
         raise SystemExit(1)
 
     config = load_config()
@@ -286,4 +286,4 @@ def model_use(model_name: str, model_type: str):
 
     type_name = "ASR" if found_type == "asr" else "VAD"
     click.echo(success(f"Switched {type_name} model: {model_name}"))
-    click.echo(warning("Restart required to take effect: mano-asr restart"))
+    click.echo(warning("Restart required to take effect: octoasr restart"))

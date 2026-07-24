@@ -90,7 +90,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           brew tap Mininglamp-AI/tap
-          FORMULA_PATH="$(brew --repo Mininglamp-AI/tap)/Formula/mano-asr.rb"
+          FORMULA_PATH="$(brew --repo Mininglamp-AI/tap)/Formula/octoasr.rb"
 
           sed -i '' "s|url \".*\"|url \"https://github.com/${REPO}/archive/refs/tags/${TAG_NAME}.tar.gz\"|" "$FORMULA_PATH"
           sed -i '' "s|sha256 \"[0-9a-f]*\"|sha256 \"${SOURCE_SHA256}\"|" "$FORMULA_PATH"
@@ -102,11 +102,11 @@ jobs:
 
       - name: Install formula with bottle build
         run: |
-          brew install --build-bottle Mininglamp-AI/tap/mano-asr
+          brew install --build-bottle Mininglamp-AI/tap/octoasr
 
       - name: Build bottle
         run: |
-          brew bottle --no-rebuild --json Mininglamp-AI/tap/mano-asr
+          brew bottle --no-rebuild --json Mininglamp-AI/tap/octoasr
 
       - name: Rename and get bottle info
         id: bottle_info
@@ -115,7 +115,7 @@ jobs:
             NEW_NAME="${f//--/-}"
             mv "$f" "$NEW_NAME"
           done
-          BOTTLE_FILE=$(ls mano-asr-*.bottle.tar.gz)
+          BOTTLE_FILE=$(ls octoasr-*.bottle.tar.gz)
           SHA256=$(shasum -a 256 "$BOTTLE_FILE" | cut -d' ' -f1)
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "filename=$BOTTLE_FILE" >> "$GITHUB_OUTPUT"
@@ -163,8 +163,8 @@ jobs:
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/Mininglamp-AI/homebrew-tap.git" tap-repo
           cd tap-repo
 
-          cat > Formula/mano-asr.rb << EOF
-          class ManoAsr < Formula
+          cat > Formula/octoasr.rb << EOF
+          class Octoasr < Formula
             desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
             homepage "https://github.com/Mininglamp-AI/mano-asr"
             url "https://github.com/Mininglamp-AI/mano-asr/archive/refs/tags/v${VERSION}.tar.gz"
@@ -193,50 +193,50 @@ jobs:
               cp_r "utils", site_packages
               cp "server.py", site_packages
 
-              (bin/"mano-asr").write <<~SH
+              (bin/"octoasr").write <<~SH
                 #!/bin/bash
                 SCRIPT_PATH="\$0"
                 if [ -L "\$0" ]; then
                     SCRIPT_PATH="\$(readlink -f "\$0" 2>/dev/null || readlink "\$0")"
                 fi
                 FORMULA_PREFIX="\$(cd "\$(dirname "\$SCRIPT_PATH")/.." && pwd)"
-                exec "\${FORMULA_PREFIX}/libexec/venv/bin/python3" -m manoasr.cli.main "\$@"
+                exec "\${FORMULA_PREFIX}/libexec/venv/bin/python3" -m octoasr.cli.main "\$@"
               SH
-              chmod 0755, bin/"mano-asr"
+              chmod 0755, bin/"octoasr"
             end
 
             def caveats
               <<~EOS
-                mano-asr installed successfully!
+                octoasr installed successfully!
 
                 Models will be downloaded automatically on first run (~1-2 GB).
 
                 Quick start:
-                  mano-asr start              # Start service (auto-downloads models on first run)
-                  mano-asr transcribe a.wav   # Transcribe audio
-                  mano-asr model list         # List models
+                  octoasr start              # Start service (auto-downloads models on first run)
+                  octoasr transcribe a.wav   # Transcribe audio
+                  octoasr model list         # List models
 
                 Service management:
-                  mano-asr start / stop / restart / status
+                  octoasr start / stop / restart / status
 
-                Model storage: ~/.mano-asr/models/
+                Model storage: ~/.octoasr/models/
                 Service address: http://127.0.0.1:8787
               EOS
             end
 
             test do
-              assert_match "${VERSION}", shell_output("#{bin}/mano-asr --version")
+              assert_match "${VERSION}", shell_output("#{bin}/octoasr --version")
             end
           end
           EOF
 
           echo "=== Generated formula ==="
-          cat Formula/mano-asr.rb
+          cat Formula/octoasr.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/mano-asr.rb
-          git commit -m "Update mano-asr to ${VERSION}"
+          git add Formula/octoasr.rb
+          git commit -m "Update octoasr to ${VERSION}"
           git push
 
       - name: Publish Release

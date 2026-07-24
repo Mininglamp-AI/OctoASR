@@ -23,26 +23,26 @@ chmod +x homebrew/build-bottle.sh
 2. 安装本地 Formula:
 
 ```bash
-brew install --formula homebrew/mano-asr-local.rb
+brew install --formula homebrew/octoasr-local.rb
 ```
 
 3. 验证:
 
 ```bash
-mano-asr --version
-mano-asr doctor
-mano-asr model list
-mano-asr start
-mano-asr status
-mano-asr stop
+octoasr --version
+octoasr doctor
+octoasr model list
+octoasr start
+octoasr status
+octoasr stop
 ```
 
 4. 卸载:
 
 ```bash
-mano-asr stop
-brew uninstall mano-asr
-rm -rf ~/.mano-asr
+octoasr stop
+brew uninstall octoasr
+rm -rf ~/.octoasr
 ```
 
 ## 发布流程
@@ -72,25 +72,25 @@ gh release create v0.1.0 \
   build/release-v0.1.0/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz \
   build/release-v0.1.0/Qwen3-ASR-1_7B-8bit.tar.gz \
   build/release-v0.1.0/fsmn-vad-mlx.tar.gz \
-  --title "mano-asr v0.1.0" \
+  --title "octoasr v0.1.0" \
   --notes "首次发布"
 ```
 
 ### 3. 设置 Homebrew Tap
 
 ```bash
-# 创建 Tap 仓库: mano-asr/homebrew-mano-asr
+# 创建 Tap 仓库: octoasr/homebrew-octoasr
 mkdir -p Formula
-cp homebrew/mano-asr.rb Formula/
+cp homebrew/octoasr.rb Formula/
 # 更新 Formula 中的 SHA256 值（参考 SHA256SUMS.txt）
-git add . && git commit -m "Add mano-asr v0.1.0" && git push
+git add . && git commit -m "Add octoasr v0.1.0" && git push
 ```
 
 ### 4. 用户安装
 
 ```bash
-brew tap mano-asr/mano-asr
-brew install mano-asr
+brew tap octoasr/octoasr
+brew install octoasr
 ```
 
 ## 包含的模型
@@ -105,8 +105,8 @@ brew install mano-asr
 
 | 文件 | 用途 |
 |------|------|
-| `mano-asr.rb` | 发布用 Formula（GitHub Release URL） |
-| `mano-asr-local.rb` | 本地测试用 Formula（file:// URL） |
+| `octoasr.rb` | 发布用 Formula（GitHub Release URL） |
+| `octoasr-local.rb` | 本地测试用 Formula（file:// URL） |
 | `build-bottle.sh` | 构建预编译 Bottle |
 | `build-release.sh` | 构建发布包（源码 + 模型 tar.gz） |
 | `test-local.sh` | 一键本地测试 |

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr doctor - environment check"""
+"""octoasr doctor - environment check"""
 
 from __future__ import annotations
 
@@ -10,9 +10,9 @@ from pathlib import Path
 
 import click
 
-from manoasr.cli.utils.config import load_config, config_exists
-from manoasr.cli.utils.console import success, error, warning, print_header, print_footer
-from manoasr.cli.utils.process import is_port_in_use
+from octoasr.cli.utils.config import load_config, config_exists
+from octoasr.cli.utils.console import success, error, warning, print_header, print_footer
+from octoasr.cli.utils.process import is_port_in_use
 
 
 def check_python() -> tuple[bool, str]:
@@ -112,7 +112,7 @@ def doctor():
 
     print_footer()
 
-    from manoasr.cli.utils.update_checker import check_and_notify
+    from octoasr.cli.utils.update_checker import check_and_notify
     check_and_notify()
 
     if all_passed:

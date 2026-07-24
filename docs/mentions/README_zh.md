@@ -31,8 +31,8 @@ ASR 在转写时，对人名、英文专有名词常输出成音译或不统一�
 | 优先级 | 来源 | 文件 | 适用场景 |
 | :---: | :--- | :--- | :--- |
 | 低 | 内置表 | 代码内置 `MENTION_MAP` | 预置常见音译人名 |
-| 中 | OpenClaw | `~/.mano-asr/mentions/openclaw.json` | 一个规范名配多个别名 |
-| **高** | **用户表** | `~/.mano-asr/mentions/user.json` | **自定义昵称，最常用** |
+| 中 | OpenClaw | `~/.octoasr/mentions/openclaw.json` | 一个规范名配多个别名 |
+| **高** | **用户表** | `~/.octoasr/mentions/user.json` | **自定义昵称，最常用** |
 
 > 💡 配置文件**首次使用时自动创建**为空模板，无需手动建目录。
 
@@ -45,8 +45,8 @@ ASR 在转写时，对人名、英文专有名词常输出成音译或不统一�
 **1. 启动服务并打开管理页**
 
 ```bash
-mano-asr start        # 启动服务（若尚未启动）
-mano-asr mentions     # 自动打开词条管理网页
+octoasr start        # 启动服务（若尚未启动）
+octoasr mentions     # 自动打开词条管理网页
 ```
 
 浏览器会自动打开管理页面 `http://127.0.0.1:<端口>/mentions`。
@@ -60,7 +60,7 @@ mano-asr mentions     # 自动打开词条管理网页
 | 🗑️ 删除 | 点某行的 **Delete** |
 
 > ✅ 改动**即时生效**，下一次转写立即采用，无需重启服务。
-> 🔗 只想拿到链接、不自动开浏览器：`mano-asr mentions --no-browser`
+> 🔗 只想拿到链接、不自动开浏览器：`octoasr mentions --no-browser`
 
 ---
 
@@ -102,7 +102,7 @@ mano-asr mentions     # 自动打开词条管理网页
 
 ## 📝 手动编辑配置
 
-> 进阶用法。若你更习惯直接改文件，配置位于 `~/.mano-asr/mentions/`。
+> 进阶用法。若你更习惯直接改文件，配置位于 `~/.octoasr/mentions/`。
 
 ### user.json — 推荐，简单键值
 
@@ -191,7 +191,7 @@ curl -X POST http://127.0.0.1:8787/v1/mentions \
 ## ❓ 常见问题
 
 <details>
-<summary><b>目录 <code>~/.mano-asr/mentions</code> 不存在？</b></summary>
+<summary><b>目录 <code>~/.octoasr/mentions</code> 不存在？</b></summary>
 
 正常。首次转写或首次访问管理页时会自动创建空模板，无需手动建。
 </details>
@@ -199,7 +199,7 @@ curl -X POST http://127.0.0.1:8787/v1/mentions \
 <details>
 <summary><b>在页面改了但转写没生效？</b></summary>
 
-确认服务在运行、且转写走的是同一台机器的同一服务。替换是即时读取的，通常无需重启；如仍异常，可 `mano-asr restart` 后重试。
+确认服务在运行、且转写走的是同一台机器的同一服务。替换是即时读取的，通常无需重启；如仍异常，可 `octoasr restart` 后重试。
 </details>
 
 <details>

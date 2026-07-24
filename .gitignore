@@ -35,4 +35,4 @@ scripts/eval/
 scripts/quant/
 scripts/benchmarks/
 # Homebrew local test formula
-homebrew/mano-asr-local.rb
+homebrew/octoasr-local.rb

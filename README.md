@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/mano-asr-banner.svg" alt="mano-asr" width="800">
+  <img src="docs/mano-asr-banner.svg" alt="octoasr" width="800">
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 
 ## Introduction
 
-**mano-asr** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **internet / IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, mano-asr accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
+**octoasr** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **internet / IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, octoasr accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
 
 Core capabilities:
 
@@ -29,7 +29,7 @@ Core capabilities:
 - ✂️ **VAD segmentation** — optional FSMN VAD splits long audio and transcribes segment by segment.
 - 🧩 **Pluggable engines** — supports Fun-ASR-Nano, Qwen3-ASR and more base models, switchable with one command.
 - 🏷️ **@Mention replacement** — auto-fix nicknames and transliterated names in transcripts via a visual page. See [Mentions](docs/mentions/README.md).
-- ⚡ **One-command start** — install via `brew install`, then `mano-asr start`.
+- ⚡ **One-command start** — install via `brew install`, then `octoasr start`.
 
 ---
 
@@ -51,7 +51,7 @@ Core capabilities:
 
 See the full release history on the **[Releases](https://github.com/Mininglamp-AI/mano-asr/releases)** page.
 - **2026-06-15** — Release the first ASR model built on Qwen3-ASR and tailored for internet office scenarios, supporting handwritten-style transcription output and accurate recognition of industry terminology. 
-- **2026-06-09** — Added @mention replacement with a visual management page (`mano-asr mentions`) for editing nickname → canonical-name mappings; spoken "艾特" is normalized to `@` before replacement. (v0.1.15 fixes packaging so the web page ships in the Homebrew build.)
+- **2026-06-09** — Added @mention replacement with a visual management page (`octoasr mentions`) for editing nickname → canonical-name mappings; spoken "艾特" is normalized to `@` before replacement. (v0.1.15 fixes packaging so the web page ships in the Homebrew build.)
 - **2026-05-29** — Released the first ASR model for internet office scenarios, with written-style transcription output and accurate recognition of industry-specific terminology.
 - **2026-05-26** — First release: FastAPI transcription service, FunASR-Nano engine, FSMN VAD, hotword extraction, session logging.
 
@@ -61,7 +61,7 @@ See the full release history on the **[Releases](https://github.com/Mininglamp-A
 
 ## Models
 
-mano-asr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `mano-asr model use <name>`.
+octoasr uses a pluggable engine design and supports several mainstream ASR base models. Switch with a single command: `octoasr model use <name>`.
 
 | Model | Base model | Quant | Size | Languages | Links                                                                                                                                                                                                                                                                   |
 | --- | --- | --- | --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -79,12 +79,12 @@ mano-asr uses a pluggable engine design and supports several mainstream ASR base
 ### Option 1: Homebrew (recommended)
 
 ```bash
-brew tap mano-asr/mano-asr
-brew install mano-asr
+brew tap octoasr/octoasr
+brew install octoasr
 
 # Start (first run auto-initializes + downloads the default model)
-mano-asr start
-mano-asr doctor   # environment check
+octoasr start
+octoasr doctor   # environment check
 ```
 
 ### Option 2: From source
@@ -95,7 +95,7 @@ brew install ffmpeg
 
 # 2. Clone + install
 git clone https://github.com/Mininglamp-AI/mano-asr.git
-cd mano-asr
+cd octoasr
 python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip
 pip install -e .
@@ -128,10 +128,10 @@ The example below shows **audio translation**: transcribe speech and translate i
 
 ```bash
 # On first run, the service auto-initializes and downloads the default model
-mano-asr start
+octoasr start
 
 # Transcribe / translate an audio file
-mano-asr transcribe assets/BAC009S0764W0129.wav
+octoasr transcribe assets/BAC009S0764W0129.wav
 
 ```
 
@@ -168,7 +168,7 @@ curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
 {
   "status": 200,
   "text": "transcribed text",
-  "m": "mano-asr",
+  "m": "octoasr",
   "engine": "mlx"
 }
 ```
@@ -180,8 +180,8 @@ curl -X POST http://127.0.0.1:8787/v1/voice/transcribe \
 Auto-replace casual nicknames and transliterated names in transcripts with the canonical spelling you want (e.g. `@小明` → `@Xiaoming`). Manage entries on a visual web page — no JSON editing required:
 
 ```bash
-mano-asr start        # Start the service (if not running)
-mano-asr mentions     # Open the management page in your browser
+octoasr start        # Start the service (if not running)
+octoasr mentions     # Open the management page in your browser
 ```
 
 > 📖 Full guide: [Mentions](docs/mentions/README.md)
@@ -239,9 +239,9 @@ Copyright (c) 2026 MININGLAMP Technology.
 
 ## Acknowledgments
 
-mano-asr would not be possible without these excellent open-source projects:
+octoasr would not be possible without these excellent open-source projects:
 
-- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple's machine-learning framework and audio toolkit, the foundation of mano-asr's local inference.
+- [**MLX**](https://github.com/ml-explore/mlx) & [**mlx-audio**](https://github.com/Blaizzy/mlx-audio) — Apple's machine-learning framework and audio toolkit, the foundation of octoasr's local inference.
 - [**FunASR / FunAudioLLM**](https://github.com/modelscope/FunASR) — source of Fun-ASR-Nano and FSMN-VAD, providing strong Chinese speech recognition.
 - [**Qwen3**](https://github.com/QwenLM/Qwen3) — the base model behind the Qwen3-ASR engine.
 - [**mlx-community**](https://huggingface.co/mlx-community) — high-quality MLX quantized models.

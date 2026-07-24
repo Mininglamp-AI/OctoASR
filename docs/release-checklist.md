@@ -1,4 +1,4 @@
-# mano-asr 线上发布检查清单
+# octoasr 线上发布检查清单
 
 ## 已完成
 
@@ -7,8 +7,8 @@
 - [x] ModelScope 下载进度条清理（OS 级 stderr 重定向）
 - [x] 模型完整性检查（`_is_model_complete`：验证 safetensors 文件 + 无残留 temp）
 - [x] 自动探测网络环境选择下载源（`_detect_preferred_source`）
-- [x] `homebrew/mano-asr.rb` 添加 `arm64_tahoe` (macOS 26) bottle 标签
-- [x] `.gitignore` 排除 `homebrew/mano-asr-local.rb`（防止本地测试路径泄露）
+- [x] `homebrew/octoasr.rb` 添加 `arm64_tahoe` (macOS 26) bottle 标签
+- [x] `.gitignore` 排除 `homebrew/octoasr-local.rb`（防止本地测试路径泄露）
 
 ## 占位符（发布前必须替换）
 
@@ -16,7 +16,7 @@
 
 ### 1. Homebrew Formula SHA256
 
-**文件：** `homebrew/mano-asr.rb`
+**文件：** `homebrew/octoasr.rb`
 
 | 占位符 | 说明 | 何时可获取 |
 |--------|------|-----------|
@@ -55,12 +55,12 @@ MODELSCOPE_REPO_MAP = {
 
 ### 发布平台选择
 
-**当前状态：** `homebrew/mano-asr.rb` 和 `constants.py` 中的地址指向 `github.com/mano-asr/mano-asr`，但 git remote 是 `code.mlamp.cn`。
+**当前状态：** `homebrew/octoasr.rb` 和 `constants.py` 中的地址指向 `github.com/octoasr/octoasr`，但 git remote 是 `code.mlamp.cn`。
 
 **需要决定：**
 - Homebrew bottle 和源码包托管在哪里？（GitHub Release / code.mlamp.cn / 其他）
 - 确定后需要修改以下文件：
-  - `homebrew/mano-asr.rb` — `homepage`、`url`、`root_url`
+  - `homebrew/octoasr.rb` — `homepage`、`url`、`root_url`
   - `manoasr/cli/utils/constants.py` — `GITHUB_RELEASE_BASE_URL`
 
 ### scripts/ 和 exp/ 含硬编码个人路径
@@ -70,11 +70,11 @@ MODELSCOPE_REPO_MAP = {
 **建议：** 发布前将这些目录加入 `.gitignore` 并从 git 中移除，或将路径改为相对路径/环境变量。
 
 **如果用 GitHub：**
-1. 创建 `github.com/mano-asr/mano-asr` 仓库
+1. 创建 `github.com/octoasr/octoasr` 仓库
 2. 创建 Release `v0.1.0`
 3. 上传 bottle 和模型包作为 Release Asset
 4. 用真实 SHA256 替换上述占位符
-5. 创建 Homebrew Tap 仓库（如 `github.com/mano-asr/homebrew-tap`）
+5. 创建 Homebrew Tap 仓库（如 `github.com/octoasr/homebrew-tap`）
 
 **如果用 code.mlamp.cn：**
 1. 修改 formula 和 constants.py 中所有 URL
@@ -94,12 +94,12 @@ MODELSCOPE_REPO_MAP = {
 # 4. 在发布平台创建 Release v0.1.0
 #    上传 build/release-v0.1.0/ 下所有 .tar.gz
 
-# 5. 用 SHA256 更新 homebrew/mano-asr.rb
+# 5. 用 SHA256 更新 homebrew/octoasr.rb
 
 # 6. 创建 Homebrew Tap 仓库
-#    将 mano-asr.rb 放入 Formula/ 目录
+#    将 octoasr.rb 放入 Formula/ 目录
 
 # 7. 用户安装命令：
-#    brew tap mano-asr/tap
-#    brew install mano-asr
+#    brew tap octoasr/tap
+#    brew install octoasr
 ```

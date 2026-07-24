@@ -1,4 +1,4 @@
-class ManoAsr < Formula
+class Octoasr < Formula
   desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
   homepage "https://github.com/Mininglamp-AI/mano-asr"
   url "https://github.com/Mininglamp-AI/mano-asr/archive/refs/tags/v0.1.7.tar.gz"
@@ -26,38 +26,38 @@ class ManoAsr < Formula
     cp_r "utils", site_packages
     cp "server.py", site_packages
 
-    (bin/"mano-asr").write <<~SH
+    (bin/"octoasr").write <<~SH
       #!/bin/bash
       SCRIPT_PATH="$0"
       if [ -L "$0" ]; then
           SCRIPT_PATH="$(readlink -f "$0" 2>/dev/null || readlink "$0")"
       fi
       FORMULA_PREFIX="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
-      exec "${FORMULA_PREFIX}/libexec/venv/bin/python3" -m manoasr.cli.main "$@"
+      exec "${FORMULA_PREFIX}/libexec/venv/bin/python3" -m octoasr.cli.main "$@"
     SH
-    chmod 0755, bin/"mano-asr"
+    chmod 0755, bin/"octoasr"
   end
 
   def caveats
     <<~EOS
-      mano-asr installed successfully!
+      octoasr installed successfully!
 
       Models will be downloaded automatically on first run (~1-2 GB).
 
       Quick start:
-        mano-asr start              # Start service (auto-downloads models on first run)
-        mano-asr transcribe a.wav   # Transcribe audio
-        mano-asr model list         # List models
+        octoasr start              # Start service (auto-downloads models on first run)
+        octoasr transcribe a.wav   # Transcribe audio
+        octoasr model list         # List models
 
       Service management:
-        mano-asr start / stop / restart / status
+        octoasr start / stop / restart / status
 
-      Model storage: ~/.mano-asr/models/
+      Model storage: ~/.octoasr/models/
       Service address: http://127.0.0.1:8787
     EOS
   end
 
   test do
-    assert_match "0.1.7", shell_output("#{bin}/mano-asr --version")
+    assert_match "0.1.7", shell_output("#{bin}/octoasr --version")
   end
 end

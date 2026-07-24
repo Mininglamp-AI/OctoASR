@@ -3,17 +3,17 @@
 
 from pathlib import Path
 
-from manoasr import __version__ as VERSION
+from octoasr import __version__ as VERSION
 
 DEFAULT_PORT = 8787
 
-CONFIG_DIR = Path.home() / ".mano-asr"
+CONFIG_DIR = Path.home() / ".octoasr"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"
-PID_FILE = CONFIG_DIR / "mano-asr.pid"
+PID_FILE = CONFIG_DIR / "octoasr.pid"
 LOG_DIR = CONFIG_DIR / "logs"
-LOG_FILE = LOG_DIR / "mano-asr.log"
+LOG_FILE = LOG_DIR / "octoasr.log"
 
-HOMEBREW_PREFIX = Path("/opt/homebrew/share/mano-asr")
+HOMEBREW_PREFIX = Path("/opt/homebrew/share/octoasr")
 HOMEBREW_MODELS_DIR = HOMEBREW_PREFIX / "models"
 
 USER_MODELS_DIR = CONFIG_DIR / "models"

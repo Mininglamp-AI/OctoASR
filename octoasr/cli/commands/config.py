@@ -1,18 +1,18 @@
 # coding=utf-8
-"""mano-asr config - configuration management"""
+"""octoasr config - configuration management"""
 
 from __future__ import annotations
 
 import click
 
-from manoasr.cli.utils.config import (
+from octoasr.cli.utils.config import (
     load_config,
     save_config,
     config_exists,
     get_default_config,
 )
-from manoasr.cli.utils.console import success, error, print_header, print_footer
-from manoasr.cli.utils.constants import CONFIG_FILE
+from octoasr.cli.utils.console import success, error, print_header, print_footer
+from octoasr.cli.utils.constants import CONFIG_FILE
 
 import yaml
 
@@ -28,7 +28,7 @@ def config_show():
     """Show current configuration"""
 
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     current_config = load_config()

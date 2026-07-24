@@ -1,16 +1,16 @@
 #!/bin/bash
-# build-release.sh - 构建 mano-asr 发布包（含全部模型）
+# build-release.sh - 构建 octoasr 发布包（含全部模型）
 # 使用方法: ./homebrew/build-release.sh
 
 set -e
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_ROOT/manoasr/__init__.py")"
+VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_ROOT/octoasr/__init__.py")"
 BUILD_DIR="$PROJECT_ROOT/build"
 RELEASE_DIR="$BUILD_DIR/release-v$VERSION"
 
 echo ""
-echo "  mano-asr 发布构建 v$VERSION"
+echo "  octoasr 发布构建 v$VERSION"
 echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -69,7 +69,7 @@ fi
 # 5. 生成 SHA256 摘要文件
 echo "  [5/5] 生成摘要..."
 cat > "$RELEASE_DIR/SHA256SUMS.txt" << EOF
-# mano-asr v$VERSION SHA256 Checksums
+# octoasr v$VERSION SHA256 Checksums
 
 Source:
   $SOURCE_SHA256  mano-asr-$VERSION.tar.gz

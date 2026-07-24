@@ -5,7 +5,7 @@
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_DIR/manoasr/__init__.py")"
+VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_DIR/octoasr/__init__.py")"
 BUILD_DIR="$PROJECT_DIR/build/bottle"
 
 # 检测 Python
@@ -34,7 +34,7 @@ fi
 BOTTLE_NAME="mano-asr--${VERSION}.${MACOS_TAG}.bottle.tar.gz"
 
 echo ""
-echo "  mano-asr Bottle 构建 v$VERSION"
+echo "  octoasr Bottle 构建 v$VERSION"
 echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Python:     $PYTHON ($PYTHON_VERSION)"
 echo "  macOS tag:  $MACOS_TAG"
@@ -42,9 +42,9 @@ echo ""
 
 # 清理
 rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR/mano-asr/$VERSION"
+mkdir -p "$BUILD_DIR/octoasr/$VERSION"
 
-INSTALL_DIR="$BUILD_DIR/mano-asr/$VERSION"
+INSTALL_DIR="$BUILD_DIR/octoasr/$VERSION"
 
 # 1. 创建虚拟环境并安装依赖
 echo "  [1/6] 创建虚拟环境..."
@@ -64,7 +64,7 @@ cp "$PROJECT_DIR/server.py" "$SITE_PACKAGES/"
 # 3. 创建启动脚本
 echo "  [4/6] 创建启动脚本..."
 mkdir -p "$INSTALL_DIR/bin"
-cat > "$INSTALL_DIR/bin/mano-asr" << 'SCRIPT'
+cat > "$INSTALL_DIR/bin/octoasr" << 'SCRIPT'
 #!/bin/bash
 SCRIPT_PATH="$0"
 if [ -L "$0" ]; then
@@ -72,9 +72,9 @@ if [ -L "$0" ]; then
 fi
 CELLAR_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 PYTHON_VERSION=$(ls "$CELLAR_DIR/libexec/lib/" | grep python | head -1)
-exec "$CELLAR_DIR/libexec/bin/$PYTHON_VERSION" -m manoasr.cli.main "$@"
+exec "$CELLAR_DIR/libexec/bin/$PYTHON_VERSION" -m octoasr.cli.main "$@"
 SCRIPT
-chmod +x "$INSTALL_DIR/bin/mano-asr"
+chmod +x "$INSTALL_DIR/bin/octoasr"
 
 # 4. 创建 INSTALL_RECEIPT.json
 echo "  [5/6] 创建元数据..."
@@ -104,7 +104,7 @@ find "$BUILD_DIR" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || t
 # 6. 打包 Bottle
 echo "  [6/6] 打包 Bottle..."
 cd "$BUILD_DIR"
-tar -czf "$BOTTLE_NAME" mano-asr
+tar -czf "$BOTTLE_NAME" octoasr
 
 BOTTLE_SHA256=$(shasum -a 256 "$BOTTLE_NAME" | cut -d' ' -f1)
 
@@ -126,8 +126,8 @@ echo "  文件:   build/release-v$VERSION/$FINAL_BOTTLE_NAME"
 echo "  大小:   $BOTTLE_SIZE"
 echo "  SHA256: $BOTTLE_SHA256"
 
-# 自动更新 mano-asr-local.rb 中的 sha256 和路径
-LOCAL_FORMULA="$PROJECT_DIR/homebrew/mano-asr-local.rb"
+# 自动更新 octoasr-local.rb 中的 sha256 和路径
+LOCAL_FORMULA="$PROJECT_DIR/homebrew/octoasr-local.rb"
 if [ -f "$LOCAL_FORMULA" ]; then
     sed -i '' "s|root_url \"file://.*\"|root_url \"file://$PROJECT_DIR/build/release-v$VERSION\"|" "$LOCAL_FORMULA"
     # 尝试替换已有的 tag 行；如果不存在则在 root_url 后追加
@@ -139,12 +139,12 @@ if [ -f "$LOCAL_FORMULA" ]; then
 " "$LOCAL_FORMULA"
     fi
     echo ""
-    echo "  ✓ mano-asr-local.rb 已自动更新"
+    echo "  ✓ octoasr-local.rb 已自动更新"
 fi
 
 echo ""
 echo "  本地测试:"
 echo "    brew install --formula $LOCAL_FORMULA"
-echo "    mano-asr --version"
+echo "    octoasr --version"
 echo ""
 echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

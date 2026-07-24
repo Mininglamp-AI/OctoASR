@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr CLI entry"""
+"""octoasr CLI entry"""
 
 import os
 import warnings
@@ -18,20 +18,20 @@ except ImportError:
 
 import click
 
-from manoasr import __version__
-from manoasr.cli.commands import service, transcribe, port, model, config, logs, doctor, mentions
+from octoasr import __version__
+from octoasr.cli.commands import service, transcribe, port, model, config, logs, doctor, mentions
 
 
 @click.group(invoke_without_command=True)
 @click.option("--version", "-v", is_flag=True, help="Show version")
 @click.pass_context
 def cli(ctx, version):
-    """mano-asr: Local speech-to-text service
+    """octoasr: Local speech-to-text service
 
-    Run 'mano-asr help' to see all commands
+    Run 'octoasr help' to see all commands
     """
     if version:
-        click.echo(f"mano-asr {__version__}")
+        click.echo(f"octoasr {__version__}")
         return
 
     if ctx.invoked_subcommand is None:
@@ -56,10 +56,10 @@ cli.add_command(mentions.mentions)
 def help_cmd():
     """Show help"""
     help_text = """
-  mano-asr - Local speech-to-text service
+  octoasr - Local speech-to-text service
 
   Usage:
-    mano-asr <command> [options]
+    octoasr <command> [options]
 
   Service:
     start         Start service (auto-init on first run)
@@ -81,14 +81,14 @@ def help_cmd():
     --version     Show version
 
   Examples:
-    mano-asr start                    Start service
-    mano-asr transcribe audio.wav     Transcribe audio
-    mano-asr port 9000                Set port
-    mano-asr model use <name>         Switch model
-    mano-asr logs --stats             Show log stats
-    mano-asr logs --errors            Show error logs only
-    mano-asr mentions                 Open @mention replacements page
-    mano-asr mentions --no-browser    Print the page link only
+    octoasr start                    Start service
+    octoasr transcribe audio.wav     Transcribe audio
+    octoasr port 9000                Set port
+    octoasr model use <name>         Switch model
+    octoasr logs --stats             Show log stats
+    octoasr logs --errors            Show error logs only
+    octoasr mentions                 Open @mention replacements page
+    octoasr mentions --no-browser    Print the page link only
 """
     click.echo(help_text)
 
