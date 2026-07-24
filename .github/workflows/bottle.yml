@@ -111,7 +111,7 @@ jobs:
       - name: Rename and get bottle info
         id: bottle_info
         run: |
-          for f in mano-asr--*.bottle.tar.gz; do
+          for f in octoasr--*.bottle.tar.gz; do
             NEW_NAME="${f//--/-}"
             mv "$f" "$NEW_NAME"
           done
@@ -146,7 +146,7 @@ jobs:
 
           cd bottles
           for tag in arm64_sequoia arm64_sonoma; do
-            FILE="mano-asr-${VERSION}.${tag}.bottle.tar.gz"
+            FILE="octoasr-${VERSION}.${tag}.bottle.tar.gz"
             SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
             echo "${tag}_sha256=$SHA" >> "$GITHUB_OUTPUT"
             echo "${tag}: $SHA"
