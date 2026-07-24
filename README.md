@@ -94,7 +94,7 @@ octoasr doctor   # environment check
 brew install ffmpeg
 
 # 2. Clone + install
-git clone https://github.com/Mininglamp-AI/octoasr.git
+git clone https://github.com/Mininglamp-AI/OctoASR.git
 cd octoasr
 python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip
