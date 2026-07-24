@@ -1,6 +1,6 @@
-# mano-asr × OpenClaw 本地语音转写集成指南
+# octoasr × OpenClaw 本地语音转写集成指南
 
-> 在 Apple Silicon Mac 上，用 [mano-asr](https://github.com/Mininglamp-AI/mano-asr) 为 [OpenClaw](https://github.com/openclaw/openclaw) 提供完全离线、零成本的语音转文字能力。无需任何云端 API Key。
+> 在 Apple Silicon Mac 上，用 [octoasr](https://github.com/Mininglamp-AI/mano-asr) 为 [OpenClaw](https://github.com/openclaw/openclaw) 提供完全离线、零成本的语音转文字能力。无需任何云端 API Key。
 
 ---
 
@@ -24,7 +24,7 @@
 - **软件**:
   - [Homebrew](https://brew.sh) 已安装
   - [OpenClaw](https://github.com/openclaw/openclaw) 已安装且 Gateway 正在运行
-  - `ffmpeg` （mano-asr 依赖，brew 会自动安装）
+  - `ffmpeg` （octoasr 依赖，brew 会自动安装）
 
 验证 OpenClaw 状态：
 
@@ -38,24 +38,24 @@ openclaw status
 
 ## 安装步骤
 
-### 1. 添加 Tap 并安装 mano-asr
+### 1. 添加 Tap 并安装 octoasr
 
 ```bash
 brew tap Mininglamp-AI/tap
-brew install mano-asr
+brew install octoasr
 ```
 
 验证安装成功：
 
 ```bash
-mano-asr --version
-# 输出: mano-asr <当前版本>
+octoasr --version
+# 输出: octoasr <当前版本>
 ```
 
 ### 2. 环境检查
 
 ```bash
-mano-asr doctor
+octoasr doctor
 ```
 
 正常输出示例：
@@ -75,20 +75,20 @@ mano-asr doctor
 ### 3. 首次启动（自动下载模型）
 
 ```bash
-mano-asr start
+octoasr start
 ```
 
 > ⏳ 首次启动会自动下载 ASR 模型（约 1 GB），请确保网络通畅。
-> 模型存储路径：`~/.mano-asr/models/`
+> 模型存储路径：`~/.octoasr/models/`
 
 等待启动完成后确认状态：
 
 ```bash
-mano-asr status
+octoasr status
 ```
 
 ```
-  mano-asr Service Status
+  octoasr Service Status
   ───────────────────────────────────
   Status: running
   PID: xxxxx
@@ -105,7 +105,7 @@ mano-asr status
 用任意音频文件测试：
 
 ```bash
-mano-asr transcribe --format text /path/to/test.wav
+octoasr transcribe --format text /path/to/test.wav
 # 输出转写文本
 ```
 
@@ -128,7 +128,7 @@ mano-asr transcribe --format text /path/to/test.wav
         "models": [
           {
             "type": "cli",
-            "command": "mano-asr",
+            "command": "octoasr",
             "args": ["transcribe", "--format", "text", "{{MediaPath}}"],
             "timeoutSeconds": 120
           }
@@ -153,11 +153,11 @@ mano-asr transcribe --format text /path/to/test.wav
         "models": [
           {
             "type": "cli",
-            "command": "mano-asr",
+            "command": "octoasr",
             "args": [
               "transcribe",
               "--format", "text",
-              "--hotwords", "OpenClaw,mano-asr,MLX",
+              "--hotwords", "OpenClaw,octoasr,MLX",
               "{{MediaPath}}"
             ],
             "timeoutSeconds": 120
@@ -171,7 +171,7 @@ mano-asr transcribe --format text /path/to/test.wav
 
 ### 混合配置（本地优先 + 云端兜底）
 
-如果你同时配置了云端 provider（如 OpenAI），可以让 mano-asr 优先，失败时回退到云端：
+如果你同时配置了云端 provider（如 OpenAI），可以让 octoasr 优先，失败时回退到云端：
 
 ```json
 {
@@ -182,7 +182,7 @@ mano-asr transcribe --format text /path/to/test.wav
         "models": [
           {
             "type": "cli",
-            "command": "mano-asr",
+            "command": "octoasr",
             "args": ["transcribe", "--format", "text", "{{MediaPath}}"],
             "timeoutSeconds": 120
           },
@@ -211,7 +211,7 @@ mano-asr transcribe --format text /path/to/test.wav
 | `models[].command` | string | 可执行文件名或完整路径 |
 | `models[].args` | string[] | 命令参数，`{{MediaPath}}` 由 OpenClaw 替换为实际音频路径 |
 | `models[].timeoutSeconds` | number | 超时秒数（默认 60，长音频建议 120） |
-| `--hotwords` | — | mano-asr 的热词参数，提升专有名词识别准确率 |
+| `--hotwords` | — | octoasr 的热词参数，提升专有名词识别准确率 |
 
 ---
 
@@ -239,7 +239,7 @@ openclaw config get tools.media.audio
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌───────────────────┐    ┌──────────────┐
-│  用户发送   │    │   OpenClaw   │    │    mano-asr       │    │   AI 模型    │
+│  用户发送   │    │   OpenClaw   │    │    octoasr       │    │   AI 模型    │
 │  语音消息   │───▶│  接收音频文件 │───▶│  本地 MLX 转写    │───▶│   处理文本   │
 └─────────────┘    └──────────────┘    └───────────────────┘    └──────────────┘
                                                 │
@@ -254,8 +254,8 @@ openclaw config get tools.media.audio
 2. OpenClaw Gateway 接收并下载音频文件到本地临时目录
 3. 检查文件大小是否超过 `maxBytes` 限制
 4. 按 `models` 数组顺序调用第一个可用的转写引擎
-5. 执行 `mano-asr transcribe --format text <音频路径>`
-6. mano-asr 在本地通过 MLX 完成推理，输出纯文本到 stdout
+5. 执行 `octoasr transcribe --format text <音频路径>`
+6. octoasr 在本地通过 MLX 完成推理，输出纯文本到 stdout
 7. OpenClaw 捕获输出，设置 `{{Transcript}}` 模板变量
 8. 将转写文本作为消息内容传递给 AI 模型处理
 9. AI 模型基于文字内容生成回复
@@ -267,7 +267,7 @@ openclaw config get tools.media.audio
 ### 查看可用模型
 
 ```bash
-mano-asr model list
+octoasr model list
 ```
 
 ```
@@ -284,8 +284,8 @@ mano-asr model list
 ### 切换模型
 
 ```bash
-mano-asr model use Fun-ASR-Nano-2512-8bit
-mano-asr restart
+octoasr model use Fun-ASR-Nano-2512-8bit
+octoasr restart
 ```
 
 | 模型 | 大小 | 特点 |
@@ -296,7 +296,7 @@ mano-asr restart
 ### 查看当前配置
 
 ```bash
-mano-asr config show
+octoasr config show
 ```
 
 ---
@@ -305,14 +305,14 @@ mano-asr config show
 
 | 命令 | 说明 |
 |------|------|
-| `mano-asr start` | 启动服务（首次自动下载模型） |
-| `mano-asr stop` | 停止服务 |
-| `mano-asr restart` | 重启服务 |
-| `mano-asr status` | 查看服务状态 |
-| `mano-asr logs` | 查看服务日志 |
-| `mano-asr doctor` | 环境检查 |
+| `octoasr start` | 启动服务（首次自动下载模型） |
+| `octoasr stop` | 停止服务 |
+| `octoasr restart` | 重启服务 |
+| `octoasr status` | 查看服务状态 |
+| `octoasr logs` | 查看服务日志 |
+| `octoasr doctor` | 环境检查 |
 
-> **注意：** OpenClaw 使用的是 CLI 模式 (`mano-asr transcribe`)。即使后台服务未运行，CLI 也能工作（会临时加载模型）。但保持服务运行可以显著加速转写，因为模型已预加载在内存中。
+> **注意：** OpenClaw 使用的是 CLI 模式 (`octoasr transcribe`)。即使后台服务未运行，CLI 也能工作（会临时加载模型）。但保持服务运行可以显著加速转写，因为模型已预加载在内存中。
 
 ---
 
@@ -335,7 +335,7 @@ mano-asr config show
         "models": [
           {
             "type": "cli",
-            "command": "mano-asr",
+            "command": "octoasr",
             "args": ["transcribe", "--format", "text", "{{MediaPath}}"],
             "timeoutSeconds": 120
           }
@@ -346,12 +346,12 @@ mano-asr config show
 }
 ```
 
-### 指定 mano-asr 完整路径（PATH 找不到时）
+### 指定 octoasr 完整路径（PATH 找不到时）
 
 ```json
 {
   "type": "cli",
-  "command": "/opt/homebrew/bin/mano-asr",
+  "command": "/opt/homebrew/bin/octoasr",
   "args": ["transcribe", "--format", "text", "{{MediaPath}}"],
   "timeoutSeconds": 120
 }
@@ -384,17 +384,17 @@ mano-asr config show
 检查清单：
 
 ```bash
-# 1. 确认 mano-asr 可用
-mano-asr --version
+# 1. 确认 octoasr 可用
+octoasr --version
 
 # 2. 确认环境正常
-mano-asr doctor
+octoasr doctor
 
 # 3. 确认 OpenClaw 配置
 openclaw config get tools.media.audio
 
 # 4. 手动测试转写
-mano-asr transcribe --format text /path/to/audio.wav
+octoasr transcribe --format text /path/to/audio.wav
 
 # 5. 查看 OpenClaw 日志（verbose 模式会显示转写调用）
 openclaw gateway restart --verbose
@@ -403,33 +403,33 @@ openclaw gateway restart --verbose
 ### 问题：转写超时
 
 - 增大 `timeoutSeconds`（默认 60，建议设为 120）
-- 确保 mano-asr 服务在运行（预加载模型更快）：`mano-asr start`
+- 确保 octoasr 服务在运行（预加载模型更快）：`octoasr start`
 - 检查音频时长是否过长（默认最大 660 秒）
 
 ### 问题：转写结果为空或乱码
 
 - 确认音频文件格式正确（支持 wav/mp3/ogg/webm/m4a/flac）
 - 确认 ffmpeg 已安装：`ffmpeg -version`
-- 尝试切换模型：`mano-asr model use Mano-ASR-0.8B-Instruct-1.0-MLX-8bit`
+- 尝试切换模型：`octoasr model use Mano-ASR-0.8B-Instruct-1.0-MLX-8bit`
 
-### 问题：找不到 mano-asr 命令
+### 问题：找不到 octoasr 命令
 
 ```bash
 # 确认安装位置
-which mano-asr
-# 通常为 /opt/homebrew/bin/mano-asr
+which octoasr
+# 通常为 /opt/homebrew/bin/octoasr
 
 # 如果不在 PATH 中，在配置里使用完整路径
-# "command": "/opt/homebrew/bin/mano-asr"
+# "command": "/opt/homebrew/bin/octoasr"
 ```
 
 ---
 
 ## 更新与卸载
 
-### 更新 mano-asr
+### 更新 octoasr
 
 ```bash
-brew upgrade mano-asr
-mano-asr restart  # 如果服务在运行
+brew upgrade octoasr
+octoasr restart  # 如果服务在运行
 ```

@@ -3,7 +3,7 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "manoasr"
+name = "octoasr"
 dynamic = ["version"]
 description = "本地语音转写服务，基于 MLX，针对 Apple Silicon 优化"
 requires-python = ">=3.10"
@@ -27,13 +27,13 @@ dependencies = [
 ]
 
 [project.scripts]
-mano-asr = "manoasr.cli.main:main"
+octoasr = "octoasr.cli.main:main"
 
 [tool.setuptools.packages.find]
-include = ["manoasr*"]
+include = ["octoasr*"]
 
 [tool.setuptools.package-data]
-manoasr = ["web/*"]
+octoasr = ["web/*"]
 
 [tool.setuptools.dynamic]
-version = { attr = "manoasr.__version__" }
+version = { attr = "octoasr.__version__" }

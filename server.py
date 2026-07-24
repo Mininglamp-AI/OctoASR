@@ -64,7 +64,7 @@ MODEL_PATH: Optional[str] = None
 VAD_MODEL_PATH: Optional[str] = None
 MAX_FILE_SIZE = 30 * 1024 * 1024
 MAX_DURATION = 660
-MODEL_NAME = "mano-asr"
+MODEL_NAME = "octoasr"
 MODEL_TYPE = "auto"
 ENGINE_NAME = "mlx"
 AUTH_TOKEN: Optional[str] = None
@@ -81,10 +81,10 @@ CHAT_CONTEXT_LIMIT = 20000
 PERSONAL_CONTEXT_LIMIT = 10000
 MEMBER_CONTEXT_LIMIT = 5000
 
-SESSIONS_DIR = Path.home() / ".mano-asr" / "sessions"
+SESSIONS_DIR = Path.home() / ".octoasr" / "sessions"
 
 # Frontend static file directory for the visual management page (mention entries)
-WEB_DIR = Path(__file__).parent / "manoasr" / "web"
+WEB_DIR = Path(__file__).parent / "octoasr" / "web"
 
 _model: Optional[AutoModel] = None
 _model_lock = Lock()
@@ -213,7 +213,7 @@ async def run_model_worker(func, *args, **kwargs):
 async def lifespan(app: FastAPI):
     global _generate_lock, _model_executor
     _generate_lock = asyncio.Lock()
-    _model_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="mano-asr-model")
+    _model_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="octoasr-model")
     if LOAD_ON_STARTUP:
         await run_model_worker(get_model)
     try:
@@ -224,7 +224,7 @@ async def lifespan(app: FastAPI):
             _model_executor = None
 
 
-app = FastAPI(title="mano-asr", lifespan=lifespan)
+app = FastAPI(title="octoasr", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -257,7 +257,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 @app.get("/")
 def health_check():
-    return {"status": 200, "service": "mano-asr", "message": "ok"}
+    return {"status": 200, "service": "octoasr", "message": "ok"}
 
 
 def require_auth(authorization: Optional[str], request: Optional[Request] = None) -> Optional[JSONResponse]:
@@ -608,7 +608,7 @@ def voice_config():
 
 # ---------------------------------------------------------------------------
 # Visual management for mention entries: page + static assets + CRUD API
-# Data layer in utils/mention.py, frontend in manoasr/web/
+# Data layer in utils/mention.py, frontend in octoasr/web/
 # ---------------------------------------------------------------------------
 
 _STATIC_MEDIA_TYPES = {".css": "text/css", ".js": "application/javascript", ".svg": "image/svg+xml"}
@@ -634,7 +634,7 @@ def mentions_page(request: Request):
 
 @app.get("/static/{filename}")
 def mentions_static(filename: str, request: Request):
-    """Serve css/js static files under manoasr/web/ (allowlist + path-traversal guard)."""
+    """Serve css/js static files under octoasr/web/ (allowlist + path-traversal guard)."""
     suffix = Path(filename).suffix
     if suffix not in _STATIC_MEDIA_TYPES or "/" in filename or ".." in filename:
         return api_error(404, "not found", request=request)
@@ -694,7 +694,7 @@ def mentions_delete(index: int, request: Request):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run mano-asr voice transcription API server")
+    parser = argparse.ArgumentParser(description="Run octoasr voice transcription API server")
     parser.add_argument("--host", default=HOST)
     parser.add_argument("--port", type=int, default=PORT)
     parser.add_argument("--model-path", required=True)

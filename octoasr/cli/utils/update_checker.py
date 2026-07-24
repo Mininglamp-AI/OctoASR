@@ -61,7 +61,7 @@ def _fetch_latest_cli_version() -> Optional[str]:
     url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
     req = Request(url)
     req.add_header("Accept", "application/vnd.github.v3+json")
-    req.add_header("User-Agent", f"mano-asr/{VERSION}")
+    req.add_header("User-Agent", f"octoasr/{VERSION}")
     try:
         resp = urlopen(req, timeout=_CHECK_TIMEOUT)
         data = json.loads(resp.read().decode("utf-8"))
@@ -74,7 +74,7 @@ def _fetch_latest_cli_version() -> Optional[str]:
 def _fetch_model_sha_hf(repo_id: str) -> Optional[str]:
     url = f"https://huggingface.co/api/models/{repo_id}"
     req = Request(url)
-    req.add_header("User-Agent", f"mano-asr/{VERSION}")
+    req.add_header("User-Agent", f"octoasr/{VERSION}")
     try:
         resp = urlopen(req, timeout=_CHECK_TIMEOUT)
         data = json.loads(resp.read().decode("utf-8"))
@@ -89,7 +89,7 @@ def _fetch_model_sha_modelscope(repo_id: str) -> Optional[str]:
         f"/repo/files?Revision=master"
     )
     req = Request(url)
-    req.add_header("User-Agent", f"mano-asr/{VERSION}")
+    req.add_header("User-Agent", f"octoasr/{VERSION}")
     try:
         resp = urlopen(req, timeout=_CHECK_TIMEOUT)
         data = json.loads(resp.read().decode("utf-8"))
@@ -190,8 +190,8 @@ def _do_check_and_notify() -> None:
     cli_info = cache.get("cli", {})
     latest = cli_info.get("latest_version")
     if latest and _compare_versions(VERSION, latest):
-        messages.append(warning(f"New version available: mano-asr {latest} (current: {VERSION})"))
-        messages.append(info("Update: brew upgrade mano-asr"))
+        messages.append(warning(f"New version available: octoasr {latest} (current: {VERSION})"))
+        messages.append(info("Update: brew upgrade octoasr"))
 
     models_cache = cache.get("models", {})
     updated_models = []
@@ -204,7 +204,7 @@ def _do_check_and_notify() -> None:
     if updated_models:
         names = ", ".join(updated_models)
         messages.append(warning(f"Model update available: {names}"))
-        messages.append(info("Re-download: mano-asr stop && mano-asr start"))
+        messages.append(info("Re-download: octoasr stop && octoasr start"))
 
     if messages:
         click.echo(f"\n  {divider()}")

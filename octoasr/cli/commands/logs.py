@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr logs - view logs"""
+"""octoasr logs - view logs"""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 
 import click
 
-from manoasr.cli.utils.console import error, info, warning, success, key_value, print_header, print_footer
-from manoasr.cli.utils.constants import LOG_FILE
+from octoasr.cli.utils.console import error, info, warning, success, key_value, print_header, print_footer
+from octoasr.cli.utils.constants import LOG_FILE
 
 
 def parse_log_line(line: str) -> dict | None:
@@ -62,7 +62,7 @@ def analyze_logs(lines: list[str], hours: int = 24) -> dict:
 
         msg = parsed["message"]
 
-        starting_match = re.search(r"mano-asr starting model_type=(\S+) model=(\S+)", msg)
+        starting_match = re.search(r"octoasr starting model_type=(\S+) model=(\S+)", msg)
         if starting_match:
             stats["last_model_type"] = starting_match.group(1)
             stats["last_model"] = starting_match.group(2)
@@ -102,10 +102,10 @@ def logs(follow: bool, lines: int, errors: bool, stats: bool, hours: int):
     """View logs
 
     Examples:
-      mano-asr logs              Show last 50 lines
-      mano-asr logs -f           Follow log output
-      mano-asr logs --errors     Show errors only
-      mano-asr logs --stats      Show statistics
+      octoasr logs              Show last 50 lines
+      octoasr logs -f           Follow log output
+      octoasr logs --errors     Show errors only
+      octoasr logs --stats      Show statistics
     """
 
     if not LOG_FILE.exists():

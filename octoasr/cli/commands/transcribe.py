@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr transcribe - transcribe audio files"""
+"""octoasr transcribe - transcribe audio files"""
 
 from __future__ import annotations
 
@@ -10,10 +10,10 @@ from pathlib import Path
 import click
 import requests
 
-from manoasr.cli.utils.config import load_config, config_exists
-from manoasr.cli.utils.console import error
-from manoasr.cli.utils.constants import DEFAULT_PORT, ALLOWED_EXTENSIONS, MODEL_TYPES, DEFAULT_MODEL_TYPE
-from manoasr.cli.utils.process import get_pid
+from octoasr.cli.utils.config import load_config, config_exists
+from octoasr.cli.utils.console import error
+from octoasr.cli.utils.constants import DEFAULT_PORT, ALLOWED_EXTENSIONS, MODEL_TYPES, DEFAULT_MODEL_TYPE
+from octoasr.cli.utils.process import get_pid
 
 
 @click.command()
@@ -72,7 +72,7 @@ def _transcribe_via_api(audio_path: Path, hotwords: str, output_format: str) -> 
             return result.get("text", "")
     except requests.exceptions.ConnectionError:
         click.echo(error("Cannot connect to service, make sure it is running"))
-        click.echo("    Run 'mano-asr start' to start the service")
+        click.echo("    Run 'octoasr start' to start the service")
         raise SystemExit(1)
     except requests.exceptions.Timeout:
         click.echo(error("Request timed out"))
@@ -84,12 +84,12 @@ def _transcribe_via_api(audio_path: Path, hotwords: str, output_format: str) -> 
 
 def _transcribe_directly(audio_path: Path, hotwords: str, output_format: str) -> str:
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     config = load_config()
 
-    from manoasr.cli.utils.constants import PROJECT_ROOT
+    from octoasr.cli.utils.constants import PROJECT_ROOT
 
     sys.path.insert(0, str(PROJECT_ROOT))
 

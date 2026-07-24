@@ -1,13 +1,13 @@
 # coding=utf-8
-"""mano-asr port - port management"""
+"""octoasr port - port management"""
 
 from __future__ import annotations
 
 import click
 
-from manoasr.cli.utils.config import load_config, save_config, config_exists
-from manoasr.cli.utils.console import success, error, warning, info
-from manoasr.cli.utils.constants import DEFAULT_PORT
+from octoasr.cli.utils.config import load_config, save_config, config_exists
+from octoasr.cli.utils.console import success, error, warning, info
+from octoasr.cli.utils.constants import DEFAULT_PORT
 
 
 @click.command()
@@ -17,14 +17,14 @@ def port(new_port: int):
 
     \b
     View current port:
-      mano-asr port
+      octoasr port
 
     \b
     Set new port:
-      mano-asr port 9000
+      octoasr port 9000
     """
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     config = load_config()
@@ -48,4 +48,4 @@ def port(new_port: int):
     save_config(config)
 
     click.echo(success(f"Port changed: {current_port} -> {new_port}"))
-    click.echo(warning("Restart required to take effect: mano-asr restart"))
+    click.echo(warning("Restart required to take effect: octoasr restart"))

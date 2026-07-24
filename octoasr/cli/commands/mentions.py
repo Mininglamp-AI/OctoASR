@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr mentions - open the mention replacements management page"""
+"""octoasr mentions - open the mention replacements management page"""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ import webbrowser
 
 import click
 
-from manoasr.cli.utils.console import success, error, warning, info, bold
-from manoasr.cli.utils.config import config_exists
-from manoasr.cli.commands.service import get_configured_port, _check_service_health
+from octoasr.cli.utils.console import success, error, warning, info, bold
+from octoasr.cli.utils.config import config_exists
+from octoasr.cli.commands.service import get_configured_port, _check_service_health
 
 
 @click.command()
@@ -19,15 +19,15 @@ def mentions(no_browser: bool):
 
     Opens a web page where you can add, edit and delete the
     nickname -> canonical name replacements stored in
-    ~/.mano-asr/mentions/user.json
+    ~/.octoasr/mentions/user.json
 
     \b
     Usage:
-      mano-asr mentions              Open the page in your browser
-      mano-asr mentions --no-browser Just print the link
+      octoasr mentions              Open the page in your browser
+      octoasr mentions --no-browser Just print the link
     """
     if not config_exists():
-        click.echo(error("Not initialized, please run: mano-asr start"))
+        click.echo(error("Not initialized, please run: octoasr start"))
         raise SystemExit(1)
 
     port = get_configured_port()
@@ -39,7 +39,7 @@ def mentions(no_browser: bool):
     click.echo(info(f"Mention manager: {bold(url)}"))
 
     if not running:
-        click.echo(warning("Service is not running. Start it first with: mano-asr start"))
+        click.echo(warning("Service is not running. Start it first with: octoasr start"))
         click.echo()
         return
 

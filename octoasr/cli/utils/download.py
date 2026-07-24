@@ -257,7 +257,7 @@ def download_from_github(model_name: str, target_dir: Path) -> Path:
     tmp_file = Path(tmp_path)
     try:
         req = Request(url)
-        req.add_header("User-Agent", f"mano-asr/{VERSION}")
+        req.add_header("User-Agent", f"octoasr/{VERSION}")
         response = urlopen(req, timeout=30)
 
         total = response.headers.get("Content-Length")
@@ -338,9 +338,9 @@ def ensure_model(model_name: str, is_vad: bool = False) -> Path:
     repo_id = HF_REPO_MAP.get(model_name, model_name)
     ms_repo_id = MODELSCOPE_REPO_MAP.get(model_name)
     if is_vad:
-        target = f"~/.mano-asr/models/{model_name}/"
+        target = f"~/.octoasr/models/{model_name}/"
     else:
-        target = f"~/.mano-asr/models/{model_namespace(model_name)}/{model_name}/"
+        target = f"~/.octoasr/models/{model_namespace(model_name)}/{model_name}/"
 
     click.echo(error(f"Could not download model: {model_name}"))
     click.echo()
@@ -349,7 +349,7 @@ def ensure_model(model_name: str, is_vad: bool = False) -> Path:
     if ms_repo_id:
         click.echo(f"      ModelScope:  modelscope download --model {ms_repo_id} --local_dir {target}")
     click.echo(f"      Place in: {target}")
-    click.echo(f"      Then run: mano-asr start")
+    click.echo(f"      Then run: octoasr start")
     raise SystemExit(1)
 
 

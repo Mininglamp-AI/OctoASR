@@ -1,5 +1,5 @@
 # coding=utf-8
-"""mano-asr service commands: start/stop/restart/status"""
+"""octoasr service commands: start/stop/restart/status"""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from pathlib import Path
 
 import click
 
-from manoasr.cli.utils.config import load_config, config_exists, save_config, get_default_config
-from manoasr.cli.utils.console import (
+from octoasr.cli.utils.config import load_config, config_exists, save_config, get_default_config
+from octoasr.cli.utils.console import (
     success,
     error,
     warning,
@@ -20,7 +20,7 @@ from manoasr.cli.utils.console import (
     print_header,
     print_footer,
 )
-from manoasr.cli.utils.process import (
+from octoasr.cli.utils.process import (
     get_pid,
     save_pid,
     remove_pid,
@@ -29,8 +29,8 @@ from manoasr.cli.utils.process import (
     get_port_process,
     get_process_uptime,
 )
-from manoasr.cli.utils.constants import DEFAULT_PORT, LOG_FILE, CONFIG_DIR, LOG_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE
-from manoasr.cli.utils.download import ensure_default_models, ensure_model, find_model_in_dirs
+from octoasr.cli.utils.constants import DEFAULT_PORT, LOG_FILE, CONFIG_DIR, LOG_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE
+from octoasr.cli.utils.download import ensure_default_models, ensure_model, find_model_in_dirs
 
 
 def get_configured_port() -> int:
@@ -83,7 +83,7 @@ def _check_service_health(port: int, timeout: float = 2.0) -> tuple[bool, str]:
 @click.option("--foreground", "-f", is_flag=True, help="Run in foreground (for debugging)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 def start(foreground: bool, debug: bool):
-    """Start mano-asr service (auto-init on first run)"""
+    """Start octoasr service (auto-init on first run)"""
 
     if not config_exists():
         click.echo(info("First run, initializing..."))
@@ -103,7 +103,7 @@ def start(foreground: bool, debug: bool):
         config["models"]["asr"] = str(asr_path)
         save_config(config)
 
-    from manoasr.cli.utils.constants import DEFAULT_VAD_MODEL
+    from octoasr.cli.utils.constants import DEFAULT_VAD_MODEL
     if not find_model_in_dirs(DEFAULT_VAD_MODEL, is_vad=True):
         click.echo(info("VAD model not found or incomplete, downloading..."))
         try:
@@ -119,7 +119,7 @@ def start(foreground: bool, debug: bool):
     if pid:
         healthy, health_msg = _check_service_health(port)
         if healthy:
-            click.echo(warning(f"mano-asr service is already running (PID: {pid})"))
+            click.echo(warning(f"octoasr service is already running (PID: {pid})"))
             return
         else:
             port_info = get_port_process(port)
@@ -128,7 +128,7 @@ def start(foreground: bool, debug: bool):
                 click.echo(error(f"Port {port} is in use by: {port_info[1]} (PID: {port_info[0]})"))
                 click.echo(f"\n    Solution:")
                 click.echo(f"      1. Kill the process: kill {port_info[0]}")
-                click.echo(f"      2. Then restart: mano-asr restart")
+                click.echo(f"      2. Then restart: octoasr restart")
                 raise SystemExit(1)
             else:
                 click.echo(warning(f"Service process exists (PID: {pid}) but not responding, restarting..."))
@@ -142,7 +142,7 @@ def start(foreground: bool, debug: bool):
             click.echo(f"    Process: {name} (PID: {pid})")
         click.echo(f"\n    Solution:")
         click.echo(f"      1. Kill the process: kill {process_info[0] if process_info else '<PID>'}")
-        click.echo(f"      2. Or change port: mano-asr port <port>")
+        click.echo(f"      2. Or change port: octoasr port <port>")
         raise SystemExit(1)
 
     if foreground:
@@ -150,7 +150,7 @@ def start(foreground: bool, debug: bool):
     else:
         _start_daemon(config, port, debug)
 
-    from manoasr.cli.utils.update_checker import check_and_notify
+    from octoasr.cli.utils.update_checker import check_and_notify
     check_and_notify()
 
 
@@ -159,7 +159,7 @@ def _run_server(config: dict, port: int, debug: bool = False):
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
-    click.echo(success("mano-asr service started (foreground)"))
+    click.echo(success("octoasr service started (foreground)"))
     click.echo(f"    Address: http://127.0.0.1:{port}")
     click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
     click.echo(f"    Model:   {asr_name}")
@@ -169,7 +169,7 @@ def _run_server(config: dict, port: int, debug: bool = False):
 
     import uvicorn
 
-    from manoasr.cli.utils.constants import PROJECT_ROOT
+    from octoasr.cli.utils.constants import PROJECT_ROOT
 
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -230,7 +230,7 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
-    click.echo(success("mano-asr service started"))
+    click.echo(success("octoasr service started"))
     click.echo(f"    Address: http://127.0.0.1:{port}")
     click.echo(f"    PID:     {process.pid}")
     click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
@@ -241,17 +241,17 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
 
 @click.command()
 def stop():
-    """Stop mano-asr service"""
+    """Stop octoasr service"""
 
     pid = get_pid()
     if not pid:
-        click.echo(warning("mano-asr service is not running"))
+        click.echo(warning("octoasr service is not running"))
         return
 
     click.echo(info("Stopping service..."))
 
     if stop_process(pid):
-        click.echo(success("mano-asr service stopped"))
+        click.echo(success("octoasr service stopped"))
     else:
         click.echo(error(f"Failed to stop process {pid}, please kill manually: kill -9 {pid}"))
         raise SystemExit(1)
@@ -261,7 +261,7 @@ def stop():
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 @click.pass_context
 def restart(ctx, debug: bool):
-    """Restart mano-asr service"""
+    """Restart octoasr service"""
 
     pid = get_pid()
     if pid:
@@ -277,9 +277,9 @@ def restart(ctx, debug: bool):
 
 @click.command()
 def status():
-    """Show mano-asr service status"""
+    """Show octoasr service status"""
 
-    print_header("mano-asr Service Status")
+    print_header("octoasr Service Status")
 
     pid = get_pid()
     port = get_configured_port()
@@ -295,7 +295,7 @@ def status():
             port_info = get_port_process(port)
             if port_info and port_info[0] != pid:
                 click.echo(warning(f"  Port {port} is in use by: {port_info[1]} (PID: {port_info[0]})"))
-                click.echo(info(f"    Suggestion: mano-asr restart or kill {port_info[0]}"))
+                click.echo(info(f"    Suggestion: octoasr restart or kill {port_info[0]}"))
 
         click.echo(key_value("PID", str(pid)))
         click.echo(key_value("Port", str(port)))
@@ -315,5 +315,5 @@ def status():
 
     print_footer()
 
-    from manoasr.cli.utils.update_checker import check_and_notify
+    from octoasr.cli.utils.update_checker import check_and_notify
     check_and_notify()

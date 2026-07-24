@@ -32,8 +32,8 @@ Replacements come from three layers, merged from **lowest to highest priority** 
 | Priority | Source | File | Use case |
 | :---: | :--- | :--- | :--- |
 | Low | Built-in | code constant `MENTION_MAP` | Preset common transliterated names |
-| Medium | OpenClaw | `~/.mano-asr/mentions/openclaw.json` | One canonical name, multiple aliases |
-| **High** | **User table** | `~/.mano-asr/mentions/user.json` | **Custom nicknames, most common** |
+| Medium | OpenClaw | `~/.octoasr/mentions/openclaw.json` | One canonical name, multiple aliases |
+| **High** | **User table** | `~/.octoasr/mentions/user.json` | **Custom nicknames, most common** |
 
 > 💡 Config files are **created automatically as empty templates on first use** — no need to create the directory manually.
 
@@ -46,8 +46,8 @@ Replacements come from three layers, merged from **lowest to highest priority** 
 **1. Start the service and open the management page**
 
 ```bash
-mano-asr start        # Start the service (if not running)
-mano-asr mentions     # Open the entry management page automatically
+octoasr start        # Start the service (if not running)
+octoasr mentions     # Open the entry management page automatically
 ```
 
 Your browser opens the management page at `http://127.0.0.1:<port>/mentions`.
@@ -61,7 +61,7 @@ Your browser opens the management page at `http://127.0.0.1:<port>/mentions`.
 | 🗑️ Delete | Click **Delete** on a row |
 
 > ✅ Changes take effect **immediately** on the next transcription — no restart needed.
-> 🔗 To only print the link without opening a browser: `mano-asr mentions --no-browser`
+> 🔗 To only print the link without opening a browser: `octoasr mentions --no-browser`
 
 ---
 
@@ -103,7 +103,7 @@ Raw transcript:  艾特小明确认一下
 
 ## 📝 Editing Config Manually
 
-> Advanced usage. If you prefer editing files directly, configs live in `~/.mano-asr/mentions/`.
+> Advanced usage. If you prefer editing files directly, configs live in `~/.octoasr/mentions/`.
 
 ### user.json — recommended, simple key-value
 
@@ -192,7 +192,7 @@ curl -X POST http://127.0.0.1:8787/v1/mentions \
 ## ❓ FAQ
 
 <details>
-<summary><b>The directory <code>~/.mano-asr/mentions</code> doesn't exist?</b></summary>
+<summary><b>The directory <code>~/.octoasr/mentions</code> doesn't exist?</b></summary>
 
 That's normal. It's created automatically as an empty template on the first transcription or first visit to the management page — no manual setup needed.
 </details>
@@ -200,7 +200,7 @@ That's normal. It's created automatically as an empty template on the first tran
 <details>
 <summary><b>I edited it on the page but transcription didn't change?</b></summary>
 
-Make sure the service is running and that transcription goes through the same service on the same machine. Replacement is read on the fly, so a restart is usually unnecessary; if it still misbehaves, try `mano-asr restart`.
+Make sure the service is running and that transcription goes through the same service on the same machine. Replacement is read on the fly, so a restart is usually unnecessary; if it still misbehaves, try `octoasr restart`.
 </details>
 
 <details>

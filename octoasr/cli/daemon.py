@@ -6,8 +6,8 @@ import signal
 import sys
 from pathlib import Path
 
-from manoasr.cli.utils.constants import DEFAULT_PORT, PROJECT_ROOT
-from manoasr.cli.utils.process import remove_pid
+from octoasr.cli.utils.constants import DEFAULT_PORT, PROJECT_ROOT
+from octoasr.cli.utils.process import remove_pid
 
 
 def signal_handler(signum, frame):
