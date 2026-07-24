@@ -21,14 +21,14 @@ mkdir -p "$RELEASE_DIR"
 # 1. 打包源代码
 echo "  [1/5] 打包源代码..."
 cd "$PROJECT_ROOT"
-git archive --format=tar.gz --prefix=mano-asr-$VERSION/ -o "$RELEASE_DIR/mano-asr-$VERSION.tar.gz" HEAD 2>/dev/null || \
+git archive --format=tar.gz --prefix=octoasr-$VERSION/ -o "$RELEASE_DIR/octoasr-$VERSION.tar.gz" HEAD 2>/dev/null || \
     tar --exclude='.git' --exclude='build' --exclude='*.pyc' --exclude='__pycache__' \
         --exclude='models/mlx-community.zip' --exclude='models/Qwen3-ASR-1_7B-8bit.zip' \
         --exclude='.idea' --exclude='.DS_Store' \
-        -czf "$RELEASE_DIR/mano-asr-$VERSION.tar.gz" -C "$PROJECT_ROOT/.." "$(basename $PROJECT_ROOT)"
+        -czf "$RELEASE_DIR/octoasr-$VERSION.tar.gz" -C "$PROJECT_ROOT/.." "$(basename $PROJECT_ROOT)"
 
-SOURCE_SHA256=$(shasum -a 256 "$RELEASE_DIR/mano-asr-$VERSION.tar.gz" | cut -d' ' -f1)
-echo "    ✓ mano-asr-$VERSION.tar.gz (SHA256: ${SOURCE_SHA256:0:16}...)"
+SOURCE_SHA256=$(shasum -a 256 "$RELEASE_DIR/octoasr-$VERSION.tar.gz" | cut -d' ' -f1)
+echo "    ✓ octoasr-$VERSION.tar.gz (SHA256: ${SOURCE_SHA256:0:16}...)"
 
 # 2. 打包 ASR 模型 - Mano-ASR
 echo "  [2/5] 打包 Mano-ASR-0.8B-Instruct-1.0-MLX-8bit..."
@@ -72,7 +72,7 @@ cat > "$RELEASE_DIR/SHA256SUMS.txt" << EOF
 # octoasr v$VERSION SHA256 Checksums
 
 Source:
-  $SOURCE_SHA256  mano-asr-$VERSION.tar.gz
+  $SOURCE_SHA256  octoasr-$VERSION.tar.gz
 
 Models:
   $ASR_SHA256  Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz

@@ -1,4 +1,4 @@
-# octoasr 线上发布检查清单
+# OctoASR 线上发布检查清单
 
 ## 已完成
 
@@ -35,7 +35,7 @@
 
 ### 2. VAD 模型 ModelScope 仓库 ID
 
-**文件：** `manoasr/cli/utils/constants.py`
+**文件：** `octoasr/cli/utils/constants.py`
 
 ```python
 MODELSCOPE_REPO_MAP = {
@@ -61,7 +61,7 @@ MODELSCOPE_REPO_MAP = {
 - Homebrew bottle 和源码包托管在哪里？（GitHub Release / code.mlamp.cn / 其他）
 - 确定后需要修改以下文件：
   - `homebrew/octoasr.rb` — `homepage`、`url`、`root_url`
-  - `manoasr/cli/utils/constants.py` — `GITHUB_RELEASE_BASE_URL`
+  - `octoasr/cli/utils/constants.py` — `GITHUB_RELEASE_BASE_URL`
 
 ### scripts/ 和 exp/ 含硬编码个人路径
 

@@ -63,7 +63,7 @@ def fetch_config(base_url: str, timeout: float = 10.0) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="octoasr test client")
+    parser = argparse.ArgumentParser(description="OctoASR test client")
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument("--audio", type=Path, default=DEFAULT_AUDIO)
     parser.add_argument("--mode", default="smart", choices=["smart", "append_only", "edit_only"])

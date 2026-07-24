@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr mentions - open the mention replacements management page"""
+"""OctoASR mentions - open the mention replacements management page"""
 
 from __future__ import annotations
 

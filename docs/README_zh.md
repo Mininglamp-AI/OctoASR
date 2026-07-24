@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="mano-asr-banner.svg" alt="OctoASR" width="800">
+  <img src="octoasr-banner.svg" alt="OctoASR" width="800">
 </p>
 
 <p align="center">
@@ -219,7 +219,7 @@ curl http://127.0.0.1:8787/v1/voice/config
 默认关闭。若以 `--auth-token` 启动，请求需携带 `Authorization: Bearer <token>`。
 
 ```bash
-python3 server.py --model-path <path> --auth-token "$MANO_ASR_TOKEN"
+python3 server.py --model-path <path> --auth-token "$OCTOASR_TOKEN"
 ```
 
 ---

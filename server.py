@@ -304,7 +304,7 @@ def validate_audio(audio: Optional[UploadFile], request: Optional[Request] = Non
 
 async def save_upload(audio: UploadFile) -> Path:
     suffix = Path(audio.filename or "").suffix.lower()
-    fd, temp_name = tempfile.mkstemp(prefix="mano_asr_", suffix=suffix)
+    fd, temp_name = tempfile.mkstemp(prefix="octoasr_", suffix=suffix)
     size = 0
     try:
         with os.fdopen(fd, "wb") as temp_file:
@@ -357,7 +357,7 @@ def prepare_audio_for_asr(audio_path: Path) -> Path:
     if audio_path.suffix.lower() == ".wav":
         return audio_path
 
-    fd, wav_name = tempfile.mkstemp(prefix="mano_asr_decode_", suffix=".wav")
+    fd, wav_name = tempfile.mkstemp(prefix="octoasr_decode_", suffix=".wav")
     os.close(fd)
     wav_path = Path(wav_name)
     try:
@@ -694,7 +694,7 @@ def mentions_delete(index: int, request: Request):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run octoasr voice transcription API server")
+    parser = argparse.ArgumentParser(description="Run OctoASR voice transcription API server")
     parser.add_argument("--host", default=HOST)
     parser.add_argument("--port", type=int, default=PORT)
     parser.add_argument("--model-path", required=True)

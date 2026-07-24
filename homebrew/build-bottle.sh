@@ -31,7 +31,7 @@ print(names.get({},f'macos{}'))
 if echo "$MACOS_TAG" | grep -q "macos"; then
     MACOS_TAG="arm64_$(brew ruby -e 'puts MacOS.version.to_sym' 2>/dev/null || echo 'sonoma')"
 fi
-BOTTLE_NAME="mano-asr--${VERSION}.${MACOS_TAG}.bottle.tar.gz"
+BOTTLE_NAME="octoasr--${VERSION}.${MACOS_TAG}.bottle.tar.gz"
 
 echo ""
 echo "  octoasr Bottle 构建 v$VERSION"
@@ -110,7 +110,7 @@ BOTTLE_SHA256=$(shasum -a 256 "$BOTTLE_NAME" | cut -d' ' -f1)
 
 # 移动到 release 目录
 mkdir -p "$PROJECT_DIR/build/release-v$VERSION"
-FINAL_BOTTLE_NAME="mano-asr-$VERSION.${MACOS_TAG}.bottle.tar.gz"
+FINAL_BOTTLE_NAME="octoasr-$VERSION.${MACOS_TAG}.bottle.tar.gz"
 mv "$BOTTLE_NAME" "$PROJECT_DIR/build/release-v$VERSION/$FINAL_BOTTLE_NAME"
 
 # 清理临时 bottle 目录

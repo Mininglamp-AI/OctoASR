@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr model - model management"""
+"""OctoASR model - model management"""
 
 from __future__ import annotations
 

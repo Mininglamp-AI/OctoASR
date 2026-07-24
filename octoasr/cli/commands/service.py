@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr service commands: start/stop/restart/status"""
+"""OctoASR service commands: start/stop/restart/status"""
 
 from __future__ import annotations
 
@@ -83,7 +83,7 @@ def _check_service_health(port: int, timeout: float = 2.0) -> tuple[bool, str]:
 @click.option("--foreground", "-f", is_flag=True, help="Run in foreground (for debugging)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 def start(foreground: bool, debug: bool):
-    """Start octoasr service (auto-init on first run)"""
+    """Start OctoASR service (auto-init on first run)"""
 
     if not config_exists():
         click.echo(info("First run, initializing..."))
@@ -119,7 +119,7 @@ def start(foreground: bool, debug: bool):
     if pid:
         healthy, health_msg = _check_service_health(port)
         if healthy:
-            click.echo(warning(f"octoasr service is already running (PID: {pid})"))
+            click.echo(warning(f"OctoASR service is already running (PID: {pid})"))
             return
         else:
             port_info = get_port_process(port)
@@ -159,7 +159,7 @@ def _run_server(config: dict, port: int, debug: bool = False):
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
-    click.echo(success("octoasr service started (foreground)"))
+    click.echo(success("OctoASR service started (foreground)"))
     click.echo(f"    Address: http://127.0.0.1:{port}")
     click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
     click.echo(f"    Model:   {asr_name}")
@@ -230,7 +230,7 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
-    click.echo(success("octoasr service started"))
+    click.echo(success("OctoASR service started"))
     click.echo(f"    Address: http://127.0.0.1:{port}")
     click.echo(f"    PID:     {process.pid}")
     click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
@@ -241,17 +241,17 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
 
 @click.command()
 def stop():
-    """Stop octoasr service"""
+    """Stop OctoASR service"""
 
     pid = get_pid()
     if not pid:
-        click.echo(warning("octoasr service is not running"))
+        click.echo(warning("OctoASR service is not running"))
         return
 
     click.echo(info("Stopping service..."))
 
     if stop_process(pid):
-        click.echo(success("octoasr service stopped"))
+        click.echo(success("OctoASR service stopped"))
     else:
         click.echo(error(f"Failed to stop process {pid}, please kill manually: kill -9 {pid}"))
         raise SystemExit(1)
@@ -261,7 +261,7 @@ def stop():
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 @click.pass_context
 def restart(ctx, debug: bool):
-    """Restart octoasr service"""
+    """Restart OctoASR service"""
 
     pid = get_pid()
     if pid:
@@ -277,9 +277,9 @@ def restart(ctx, debug: bool):
 
 @click.command()
 def status():
-    """Show octoasr service status"""
+    """Show OctoASR service status"""
 
-    print_header("octoasr Service Status")
+    print_header("OctoASR Service Status")
 
     pid = get_pid()
     port = get_configured_port()

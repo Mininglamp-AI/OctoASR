@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr config - configuration management"""
+"""OctoASR config - configuration management"""
 
 from __future__ import annotations
 

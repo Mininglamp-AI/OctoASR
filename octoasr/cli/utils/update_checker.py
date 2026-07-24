@@ -190,7 +190,7 @@ def _do_check_and_notify() -> None:
     cli_info = cache.get("cli", {})
     latest = cli_info.get("latest_version")
     if latest and _compare_versions(VERSION, latest):
-        messages.append(warning(f"New version available: octoasr {latest} (current: {VERSION})"))
+        messages.append(warning(f"New version available: OctoASR {latest} (current: {VERSION})"))
         messages.append(info("Update: brew upgrade octoasr"))
 
     models_cache = cache.get("models", {})

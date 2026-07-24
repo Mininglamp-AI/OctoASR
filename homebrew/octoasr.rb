@@ -40,7 +40,7 @@ class Octoasr < Formula
 
   def caveats
     <<~EOS
-      octoasr installed successfully!
+      OctoASR installed successfully!
 
       Models will be downloaded automatically on first run (~1-2 GB).
 

@@ -55,7 +55,7 @@ chmod +x homebrew/build-release.sh
 ```
 
 生成文件（`build/release-v0.1.0/`）：
-- `mano-asr-0.1.0.tar.gz` - 源代码
+- `octoasr-0.1.0.tar.gz` - 源代码
 - `Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz` - Mano-ASR 模型（默认）
 - `Qwen3-ASR-1_7B-8bit.tar.gz` - Qwen3 ASR 模型
 - `fsmn-vad-mlx.tar.gz` - VAD 模型
@@ -68,22 +68,22 @@ git tag v0.1.0
 git push origin v0.1.0
 
 gh release create v0.1.0 \
-  build/release-v0.1.0/mano-asr-0.1.0.tar.gz \
+  build/release-v0.1.0/octoasr-0.1.0.tar.gz \
   build/release-v0.1.0/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz \
   build/release-v0.1.0/Qwen3-ASR-1_7B-8bit.tar.gz \
   build/release-v0.1.0/fsmn-vad-mlx.tar.gz \
-  --title "octoasr v0.1.0" \
+  --title "OctoASR v0.1.0" \
   --notes "首次发布"
 ```
 
 ### 3. 设置 Homebrew Tap
 
 ```bash
-# 创建 Tap 仓库: octoasr/homebrew-octoasr
+# 创建 Tap 仓库: OctoASR/homebrew-octoasr
 mkdir -p Formula
 cp homebrew/octoasr.rb Formula/
 # 更新 Formula 中的 SHA256 值（参考 SHA256SUMS.txt）
-git add . && git commit -m "Add octoasr v0.1.0" && git push
+git add . && git commit -m "Add OctoASR v0.1.0" && git push
 ```
 
 ### 4. 用户安装

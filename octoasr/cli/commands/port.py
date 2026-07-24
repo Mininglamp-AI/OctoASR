@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr port - port management"""
+"""OctoASR port - port management"""
 
 from __future__ import annotations
 

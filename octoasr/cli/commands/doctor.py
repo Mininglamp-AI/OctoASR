@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr doctor - environment check"""
+"""OctoASR doctor - environment check"""
 
 from __future__ import annotations
 

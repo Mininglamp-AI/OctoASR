@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr transcribe - transcribe audio files"""
+"""OctoASR transcribe - transcribe audio files"""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr CLI entry"""
+"""OctoASR CLI entry"""
 
 import os
 import warnings
@@ -26,7 +26,7 @@ from octoasr.cli.commands import service, transcribe, port, model, config, logs,
 @click.option("--version", "-v", is_flag=True, help="Show version")
 @click.pass_context
 def cli(ctx, version):
-    """octoasr: Local speech-to-text service
+    """OctoASR: Local speech-to-text service
 
     Run 'octoasr help' to see all commands
     """
@@ -56,7 +56,7 @@ cli.add_command(mentions.mentions)
 def help_cmd():
     """Show help"""
     help_text = """
-  octoasr - Local speech-to-text service
+  OctoASR - Local speech-to-text service
 
   Usage:
     octoasr <command> [options]

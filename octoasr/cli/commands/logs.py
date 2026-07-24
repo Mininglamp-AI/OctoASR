@@ -1,5 +1,5 @@
 # coding=utf-8
-"""octoasr logs - view logs"""
+"""OctoASR logs - view logs"""
 
 from __future__ import annotations
 

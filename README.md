@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/mano-asr-banner.svg" alt="OctoASR" width="800">
+  <img src="docs/octoasr-banner.svg" alt="OctoASR" width="800">
 </p>
 
 <p align="center">
@@ -220,7 +220,7 @@ curl http://127.0.0.1:8787/v1/voice/config
 Disabled by default. If started with `--auth-token`, requests must carry `Authorization: Bearer <token>`.
 
 ```bash
-python3 server.py --model-path <path> --auth-token "$MANO_ASR_TOKEN"
+python3 server.py --model-path <path> --auth-token "$OCTOASR_TOKEN"
 ```
 
 ---
