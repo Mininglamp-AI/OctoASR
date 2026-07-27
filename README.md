@@ -101,16 +101,19 @@ pip install -U pip
 pip install -e .
 
 # 3. Download the model
-hf download Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit \
-  --local-dir models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit
+hf download Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit \
+  --local-dir models/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit
+
+hf download Mininglamp-2718/fsmn-vad-mlx \
+  --local-dir models/Mininglamp-2718/fsmn-vad-mlx
 
 # Behind a China mirror:
 # HF_ENDPOINT=https://hf-mirror.com hf download ...
 
 # 4. Start the server
 python3 server.py \
-  --model-path models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit \
-  --vad-model-path models/fsmn-vad-mlx \
+  --model-path models/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit \
+  --vad-model-path models/Mininglamp-2718/fsmn-vad-mlx \
   --host 0.0.0.0 --port 8787 --load-on-startup
 ```
 
@@ -141,7 +144,7 @@ octoasr transcribe assets/BAC009S0764W0129.wav
 from core.auto_model import AutoModel
 
 model = AutoModel(
-    model="models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
+    model="models/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit",
     vad_model="models/fsmn-vad-mlx",  # optional: auto-segment long audio
 )
 
