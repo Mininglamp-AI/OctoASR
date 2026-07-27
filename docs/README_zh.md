@@ -79,6 +79,7 @@ OctoASR 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。�
 
 ```bash
 brew tap Mininglamp-AI/tap
+brew trust mininglamp-ai/tap
 brew install octoasr
 
 # 启动（首次运行自动初始化 + 下载默认模型）
