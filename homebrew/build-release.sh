@@ -31,11 +31,11 @@ SOURCE_SHA256=$(shasum -a 256 "$RELEASE_DIR/octoasr-$VERSION.tar.gz" | cut -d' '
 echo "    ✓ octoasr-$VERSION.tar.gz (SHA256: ${SOURCE_SHA256:0:16}...)"
 
 # 2. 打包 ASR 模型 - Mano-ASR
-echo "  [2/5] 打包 Mano-ASR-0.8B-Instruct-1.0-MLX-8bit..."
-ASR_MODEL_DIR="$PROJECT_ROOT/models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"
+echo "  [2/5] 打包 OctoASR-0.8B-Instruct-1.0-MLX-8bit..."
+ASR_MODEL_DIR="$PROJECT_ROOT/models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit"
 if [ -d "$ASR_MODEL_DIR" ]; then
-    tar -czf "$RELEASE_DIR/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz" -C "$PROJECT_ROOT/models/Mininglamp-2718" "Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"
-    ASR_SHA256=$(shasum -a 256 "$RELEASE_DIR/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz" | cut -d' ' -f1)
+    tar -czf "$RELEASE_DIR/OctoASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz" -C "$PROJECT_ROOT/models/Mininglamp-2718" "OctoASR-0.8B-Instruct-1.0-MLX-8bit"
+    ASR_SHA256=$(shasum -a 256 "$RELEASE_DIR/OctoASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz" | cut -d' ' -f1)
     echo "    ✓ SHA256: ${ASR_SHA256:0:16}..."
 else
     echo "    ✗ 目录不存在: $ASR_MODEL_DIR"
@@ -75,7 +75,7 @@ Source:
   $SOURCE_SHA256  octoasr-$VERSION.tar.gz
 
 Models:
-  $ASR_SHA256  Mano-ASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz
+  $ASR_SHA256  OctoASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz
   $QWEN3_SHA256  Qwen3-ASR-1_7B-8bit.tar.gz
   $VAD_SHA256  fsmn-vad-mlx.tar.gz
 EOF

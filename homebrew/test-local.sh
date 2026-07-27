@@ -87,11 +87,11 @@ if [ -d "$USER_MODELS_DIR" ]; then
     echo "    ✓ 用户模型目录存在: $USER_MODELS_DIR"
     PASS=$((PASS + 1))
 
-    if [ -d "$USER_MODELS_DIR/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit" ]; then
-        echo "    ✓ Mano-ASR-0.8B-Instruct-1.0-MLX-8bit 模型（已下载）"
+    if [ -d "$USER_MODELS_DIR/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit" ]; then
+        echo "    ✓ OctoASR-0.8B-Instruct-1.0-MLX-8bit 模型（已下载）"
         PASS=$((PASS + 1))
     else
-        echo "    ℹ Mano-ASR-0.8B-Instruct-1.0-MLX-8bit 未下载（首次 octoasr start 时自动下载）"
+        echo "    ℹ OctoASR-0.8B-Instruct-1.0-MLX-8bit 未下载（首次 octoasr start 时自动下载）"
     fi
 
     if [ -d "$USER_MODELS_DIR/fsmn-vad-mlx" ]; then

@@ -68,7 +68,7 @@ octoasr doctor
   ✓ ffprobe (installed)
   ✓ MLX unknown
   ✓ Config file exists
-  ✓ ASR model: Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
+  ✓ ASR model: OctoASR-0.8B-Instruct-1.0-MLX-8bit
   ───────────────────────────────────
 ```
 
@@ -96,7 +96,7 @@ octoasr status
   Uptime: 0h 1m
   ───────────────────────────────────
   Engine: qwen3-asr (Qwen3-ASR)
-  ASR Model: Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
+  ASR Model: OctoASR-0.8B-Instruct-1.0-MLX-8bit
   ───────────────────────────────────
 ```
 
@@ -276,7 +276,7 @@ octoasr model list
   Engine: qwen3-asr
 
   ASR Models:
-    * Mano-ASR-0.8B-Instruct-1.0-MLX-8bit (active)
+    * OctoASR-0.8B-Instruct-1.0-MLX-8bit (active)
       Fun-ASR-Nano-2512-8bit
   ───────────────────────────────────
 ```
@@ -290,7 +290,7 @@ octoasr restart
 
 | 模型 | 大小 | 特点 |
 |------|------|------|
-| Mano-ASR-0.8B-Instruct-1.0-MLX-8bit | ~1GB | 默认启动模型，兼顾速度和精度 |
+| OctoASR-0.8B-Instruct-1.0-MLX-8bit | ~1GB | 默认启动模型，兼顾速度和精度 |
 | Fun-ASR-Nano-2512-8bit | ~500MB | 更轻量，速度更快 |
 
 ### 查看当前配置
@@ -410,7 +410,7 @@ openclaw gateway restart --verbose
 
 - 确认音频文件格式正确（支持 wav/mp3/ogg/webm/m4a/flac）
 - 确认 ffmpeg 已安装：`ffmpeg -version`
-- 尝试切换模型：`octoasr model use Mano-ASR-0.8B-Instruct-1.0-MLX-8bit`
+- 尝试切换模型：`octoasr model use OctoASR-0.8B-Instruct-1.0-MLX-8bit`
 
 ### 问题：找不到 OctoASR 命令
 

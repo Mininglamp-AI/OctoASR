@@ -6,9 +6,9 @@
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
   <a href="https://github.com/Mininglamp-AI/octoasr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/octoasr?color=blue" alt="License"></a>
   <a href="https://github.com/Mininglamp-AI/octoasr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/octoasr?style=social" alt="Stars"></a>
-  <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
-  <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
-  <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
+  <a href="https://huggingface.co/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
+  <a href="https://www.modelscope.cn/models/Mininglamp2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
+  <a href="https://www.modelscope.ai/models/Mininglamp2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
 </p>
 
 <p align="center">
@@ -19,11 +19,11 @@
 
 ## Introduction
 
-**OctoASR** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **internet / IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, OctoASR accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
+**OctoASR** is a local speech recognition service for vertical domains, deeply optimized for Apple Silicon via [Cider](https://github.com/Mininglamp-AI/cider). Purpose-built for **Internet or IT office** scenarios, it is closely adapted to high-frequency workplace use cases such as meeting notes, technical discussions, product reviews, and engineering dictation. Through targeted optimization on domain data, OctoASR accurately recognizes English terms, acronyms, and product names (e.g. `Kubernetes`, `FastAPI`, `PRD`, `Code Review`) as well as mixed Chinese-English speech, effectively addressing the term-misrecognition and code-switching segmentation issues common to general-purpose models — so transcripts come out clear, domain-aware, and accurate. The service runs fully locally, works out of the box, and keeps audio and transcript data on your machine.
 
 Core capabilities:
 
-- 🎯 **Vertical-domain optimization** — optimized on internet / IT office data; accurate on English terms, acronyms, product names, and mixed Chinese-English speech.
+- 🎯 **Vertical-domain optimization** — optimized on Internet or IT office data; accurate on English terms, acronyms, product names, and mixed Chinese-English speech.
 - 🍎 **Native Apple Silicon** — MLX-based local inference on M-series chips, further optimized with our in-house acceleration framework Cider.
 - 🔒 **Fully local, privacy-first** — audio and transcripts never leave your machine.
 - ✂️ **VAD segmentation** — optional FSMN VAD splits long audio and transcribes segment by segment.
@@ -65,8 +65,8 @@ OctoASR uses a pluggable engine design and supports several mainstream ASR base 
 
 | Model | Base model | Quant | Size | Languages | Links                                                                                                                                                                                                                                                                   |
 | --- | --- | --- | --- | --- |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Mano-ASR-1.7B** (default) | Qwen3-ASR | 8bit | 1.7 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit) |
-| **Mano-ASR-0.8B** | Fun-ASR-Nano | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| **OctoASR-1.7B** (default) | Qwen3-ASR | 8bit | 1.7 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit) |
+| **OctoASR-0.8B** | Fun-ASR-Nano | 8bit | 0.8 GB | ZH / EN | [🤗](https://huggingface.co/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > The model is downloaded automatically from HuggingFace or ModelScope (China mirror); the source is chosen by network environment on first run.
 
@@ -101,15 +101,15 @@ pip install -U pip
 pip install -e .
 
 # 3. Download the model
-hf download Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
-  --local-dir models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
+hf download Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit \
+  --local-dir models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit
 
 # Behind a China mirror:
 # HF_ENDPOINT=https://hf-mirror.com hf download ...
 
 # 4. Start the server
 python3 server.py \
-  --model-path models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
+  --model-path models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit \
   --vad-model-path models/fsmn-vad-mlx \
   --host 0.0.0.0 --port 8787 --load-on-startup
 ```
@@ -141,14 +141,14 @@ octoasr transcribe assets/BAC009S0764W0129.wav
 from core.auto_model import AutoModel
 
 model = AutoModel(
-    model="models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
-    vad_model="models/fsmn-vad-mlx",   # optional: auto-segment long audio
+    model="models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
+    vad_model="models/fsmn-vad-mlx",  # optional: auto-segment long audio
 )
 
 text = model.generate(
     "assets/BAC009S0764W0129.wav",
-    task="translate",        # translation task
-    target_language="zh",    # target language: Chinese
+    task="translate",  # translation task
+    target_language="zh",  # target language: Chinese
     merge_vad=True,
 )
 print(text)

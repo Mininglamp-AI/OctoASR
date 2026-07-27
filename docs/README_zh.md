@@ -6,9 +6,9 @@
   <a href="#"><img src="https://img.shields.io/badge/MLX-Apple%20Silicon-000000?logo=apple&logoColor=white" alt="MLX"></a>
   <a href="https://github.com/Mininglamp-AI/octoasr/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Mininglamp-AI/octoasr?color=blue" alt="License"></a>
   <a href="https://github.com/Mininglamp-AI/octoasr/stargazers"><img src="https://img.shields.io/github/stars/Mininglamp-AI/octoasr?style=social" alt="Stars"></a>
-  <a href="https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
-  <a href="https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
-  <a href="https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
+  <a href="https://huggingface.co/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🤗-HuggingFace-yellow" alt="HuggingFace"></a>
+  <a href="https://www.modelscope.cn/models/Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20CN-purple" alt="ModelScope CN"></a>
+  <a href="https://www.modelscope.ai/models/Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit"><img src="https://img.shields.io/badge/🪄-ModelScope%20AI-purple" alt="ModelScope AI"></a>
 </p>
 
 <p align="center">
@@ -19,11 +19,11 @@
 
 ## 简介
 
-**OctoASR** 是一款面向垂直领域的本地语音识别服务，基于 [Cider](https://github.com/Mininglamp-AI/cider) 针对 Apple Silicon 深度优化，专为 **互联网 / IT 办公** 场景打造，深度适配会议纪要、技术讨论、产品评审、研发口播等高频办公场景。依托对领域语料的针对性优化，OctoASR 能够准确识别英文术语、缩写、产品名等专有名词（如 `Kubernetes`、`FastAPI`、`PRD`、`Code Review`）与中英混合表达，有效应对通用模型常见的术语误转、中英混说断句混乱等问题，实现"听得清、懂行话、写得准"。服务完全本地运行，开箱即用，音频与转写数据不出本机。
+**OctoASR** 是一款面向垂直领域的本地语音识别服务，基于 [Cider](https://github.com/Mininglamp-AI/cider) 针对 Apple Silicon 深度优化，专为 **互联网 或 IT 办公** 场景打造，深度适配会议纪要、技术讨论、产品评审、研发口播等高频办公场景。依托对领域语料的针对性优化，OctoASR 能够准确识别英文术语、缩写、产品名等专有名词（如 `Kubernetes`、`FastAPI`、`PRD`、`Code Review`）与中英混合表达，有效应对通用模型常见的术语误转、中英混说断句混乱等问题，实现"听得清、懂行话、写得准"。服务完全本地运行，开箱即用，音频与转写数据不出本机。
 
 核心能力：
 
-- 🎯 **垂直领域优化** — 面向互联网 / IT 办公语料优化，精准识别英文术语、缩写、产品名与中英混说。
+- 🎯 **垂直领域优化** — 面向互联网 或 IT 办公语料优化，精准识别英文术语、缩写、产品名与中英混说。
 - 🍎 **Apple Silicon 原生** — 基于 MLX 对 M 系列芯片本地推理，并在此基础上使用自研加速框架 Cider 进行进一步优化。
 - 🔒 **完全本地、隐私优先** — 音频与转写结果均不离开本机。
 - ✂️ **VAD 智能分段** — 可选 FSMN VAD，对长音频自动切分后逐段转写。
@@ -65,7 +65,7 @@ OctoASR 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。�
 
 | 模型 | 基座模型 | 量化 | 大小 | 语言 | 访问网站 |
 | --- | --- | --- | --- | --- | --- |
-| **Mano-ASR-0.8B**（默认） | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | 中 / 英 | [🤗](https://huggingface.co/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit) |
+| **OctoASR-0.8B**（默认） | [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | 8bit | 0.8 GB | 中 / 英 | [🤗](https://huggingface.co/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit) · [🤖](https://www.modelscope.cn/models/Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit) · [🌟](https://www.modelscope.ai/models/Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit) |
 
 > 模型支持从 HuggingFace 或 ModelScope（国内镜像）自动下载，首次启动会按网络环境自动选源。
 
@@ -100,15 +100,15 @@ pip install -U pip
 pip install -e .
 
 # 3. 下载模型
-hf download Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
-  --local-dir models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit
+hf download Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit \
+  --local-dir models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit
 
 # 国内用户使用镜像：
 # HF_ENDPOINT=https://hf-mirror.com hf download ...
 
 # 4. 启动服务
 python3 server.py \
-  --model-path models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit \
+  --model-path models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit \
   --vad-model-path models/fsmn-vad-mlx \
   --host 0.0.0.0 --port 8787 --load-on-startup
 ```
@@ -140,14 +140,14 @@ octoasr transcribe assets/BAC009S0764W0129.wav
 from core.auto_model import AutoModel
 
 model = AutoModel(
-    model="models/Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
-    vad_model="models/fsmn-vad-mlx",   # 可选：长音频自动分段
+    model="models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
+    vad_model="models/fsmn-vad-mlx",  # 可选：长音频自动分段
 )
 
 text = model.generate(
     "assets/BAC009S0764W0129.wav",
-    task="translate",        # 翻译任务
-    target_language="zh",    # 目标语言：中文
+    task="translate",  # 翻译任务
+    target_language="zh",  # 目标语言：中文
     merge_vad=True,
 )
 print(text)

@@ -21,7 +21,7 @@ USER_MODELS_DIR = CONFIG_DIR / "models"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 LOCAL_MODELS_DIR = PROJECT_ROOT / "models"
 
-DEFAULT_ASR_MODEL = "Mano-ASR-1.7B-Instruct-1.0-MLX-8bit"
+DEFAULT_ASR_MODEL = "OctoASR-1.7B-Instruct-1.0-MLX-8bit"
 DEFAULT_VAD_MODEL = "fsmn-vad-mlx"
 DEFAULT_MODEL_TYPE = "qwen3-asr"
 
@@ -29,28 +29,28 @@ MODEL_TYPES = {
     "funasr": {
         "label": "Mano-ASR",
         "server_type": "funasr",
-        "default_model": "Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
+        "default_model": "OctoASR-0.8B-Instruct-1.0-MLX-8bit",
     },
     "qwen3-asr": {
         "label": "Qwen3-ASR",
         "server_type": "qwen3_asr",
-        "default_model": "Mano-ASR-1.7B-Instruct-1.0-MLX-8bit",
+        "default_model": "OctoASR-1.7B-Instruct-1.0-MLX-8bit",
     },
 }
 
 ALLOWED_EXTENSIONS = {".wav", ".mp3", ".ogg", ".webm", ".m4a", ".flac"}
 
 HF_REPO_MAP = {
-    "Mano-ASR-1.7B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit",
-    "Mano-ASR-0.8B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
+    "OctoASR-1.7B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit",
+    "OctoASR-0.8B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
     "Fun-ASR-Nano-2512-8bit": "mlx-community/Fun-ASR-Nano-2512-8bit",
     "Qwen3-ASR-1.7B-8bit": "mlx-community/Qwen3-ASR-1.7B-8bit",
     "fsmn-vad-mlx": "Mininglamp-2718/fsmn-vad-mlx",
 }
 
 MODELSCOPE_REPO_MAP = {
-    "Mano-ASR-1.7B-Instruct-1.0-MLX-8bit": "Mininglamp2718/Mano-ASR-1.7B-Instruct-1.0-MLX-8bit",
-    "Mano-ASR-0.8B-Instruct-1.0-MLX-8bit": "Mininglamp2718/Mano-ASR-0.8B-Instruct-1.0-MLX-8bit",
+    "OctoASR-1.7B-Instruct-1.0-MLX-8bit": "Mininglamp2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit",
+    "OctoASR-0.8B-Instruct-1.0-MLX-8bit": "Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
     "Fun-ASR-Nano-2512-8bit": "luosir001/Fun-ASR-Nano-2512-8bit",
     "Qwen3-ASR-1.7B-8bit": "luosir001/Qwen3-ASR-1_7B-8bit",
     "fsmn-vad-mlx": "Mininglamp2718/fsmn-vad-mlx",
