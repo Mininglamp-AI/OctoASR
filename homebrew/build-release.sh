@@ -30,7 +30,7 @@ git archive --format=tar.gz --prefix=octoasr-$VERSION/ -o "$RELEASE_DIR/octoasr-
 SOURCE_SHA256=$(shasum -a 256 "$RELEASE_DIR/octoasr-$VERSION.tar.gz" | cut -d' ' -f1)
 echo "    ✓ octoasr-$VERSION.tar.gz (SHA256: ${SOURCE_SHA256:0:16}...)"
 
-# 2. 打包 ASR 模型 - Mano-ASR
+# 2. 打包 ASR 模型 - OctoASR
 echo "  [2/5] 打包 OctoASR-0.8B-Instruct-1.0-MLX-8bit..."
 ASR_MODEL_DIR="$PROJECT_ROOT/models/Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit"
 if [ -d "$ASR_MODEL_DIR" ]; then

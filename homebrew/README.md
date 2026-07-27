@@ -56,7 +56,7 @@ chmod +x homebrew/build-release.sh
 
 生成文件（`build/release-v0.1.0/`）：
 - `octoasr-0.1.0.tar.gz` - 源代码
-- `OctoASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz` - Mano-ASR 模型（默认）
+- `OctoASR-0.8B-Instruct-1.0-MLX-8bit.tar.gz` - OctoASR 模型（默认）
 - `Qwen3-ASR-1_7B-8bit.tar.gz` - Qwen3 ASR 模型
 - `fsmn-vad-mlx.tar.gz` - VAD 模型
 - `SHA256SUMS.txt` - 校验和

@@ -27,7 +27,7 @@ DEFAULT_MODEL_TYPE = "qwen3-asr"
 
 MODEL_TYPES = {
     "funasr": {
-        "label": "Mano-ASR",
+        "label": "OctoASR",
         "server_type": "funasr",
         "default_model": "OctoASR-0.8B-Instruct-1.0-MLX-8bit",
     },
@@ -67,7 +67,7 @@ def model_namespace(model_name: str) -> str:
     """Local sub-directory (HF org) a non-VAD model is stored under.
 
     Derived from the HuggingFace repo id, e.g.
-    "Mininglamp-2718/Mano-ASR-..." -> "Mininglamp-2718".
+    "Mininglamp-2718/OctoASR-..." -> "Mininglamp-2718".
     Falls back to "mlx-community" for unknown models so legacy layouts
     keep working.
     """
