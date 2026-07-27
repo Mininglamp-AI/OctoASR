@@ -79,7 +79,7 @@ OctoASR uses a pluggable engine design and supports several mainstream ASR base 
 ### Option 1: Homebrew (recommended)
 
 ```bash
-brew tap octoasr/octoasr
+brew tap Mininglamp-AI/tap
 brew install octoasr
 
 # Start (first run auto-initializes + downloads the default model)
