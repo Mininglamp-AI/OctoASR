@@ -145,7 +145,7 @@ from core.auto_model import AutoModel
 
 model = AutoModel(
     model="models/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit",
-    vad_model="models/fsmn-vad-mlx",  # optional: auto-segment long audio
+    vad_model="models/Mininglamp-2718/fsmn-vad-mlx",  # optional: auto-segment long audio
 )
 
 text = model.generate(
