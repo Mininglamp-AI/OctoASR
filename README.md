@@ -79,7 +79,7 @@ OctoASR uses a pluggable engine design and supports several mainstream ASR base 
 ### Option 1: Homebrew (recommended)
 
 ```bash
-brew tap octoasr/octoasr
+brew tap Mininglamp-AI/tap
 brew install octoasr
 
 # Start (first run auto-initializes + downloads the default model)
@@ -94,7 +94,7 @@ octoasr doctor   # environment check
 brew install ffmpeg
 
 # 2. Clone + install
-git clone https://github.com/Mininglamp-AI/octoasr.git
+git clone https://github.com/Mininglamp-AI/OctoASR.git
 cd octoasr
 python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip

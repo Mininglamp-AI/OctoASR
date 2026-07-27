@@ -78,7 +78,7 @@ OctoASR 采用可插拔的引擎设计，支持多种主流 ASR 基座模型。�
 ### 方式一：Homebrew（推荐）
 
 ```bash
-brew tap octoasr/octoasr
+brew tap Mininglamp-AI/tap
 brew install octoasr
 
 # 启动（首次运行自动初始化 + 下载默认模型）
@@ -93,7 +93,7 @@ octoasr doctor   # 环境自检
 brew install ffmpeg
 
 # 2. 克隆 + 安装
-git clone https://github.com/Mininglamp-AI/octoasr.git
+git clone https://github.com/Mininglamp-AI/OctoASR.git
 cd octoasr
 python3 -m venv .venv && source .venv/bin/activate
 pip install -U pip
