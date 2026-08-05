@@ -638,9 +638,15 @@ async def transcribe_voice(
             final_text = transcript
         extras["mention"] = mention_result
         extras["transcript_with_mention"] = final_text
-        if mention_result and mention_result.get("should_mention"):
+        if mention_result is None:
+            logger.info("[mention] disabled (no model)")
+        elif mention_result.get("skipped"):
+            logger.info("[mention] skipped=%s", mention_result.get("skipped"))
+        else:
             logger.info(
-                "[mention] should_mention=true targets=%s",
+                "[mention] is_imperative=%s should_mention=%s targets=%s",
+                mention_result.get("is_imperative"),
+                mention_result.get("should_mention"),
                 [t.get("display_name") for t in mention_result.get("targets", [])
                  if isinstance(t, dict)],
             )
