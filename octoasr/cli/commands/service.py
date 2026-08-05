@@ -177,6 +177,7 @@ def _run_server(config: dict, port: int, debug: bool = False):
 
     server.MODEL_PATH = config["models"]["asr"]
     server.VAD_MODEL_PATH = config["models"].get("vad")
+    server.MENTION_MODEL_PATH = config["models"].get("mention")
     server.HOST = "0.0.0.0"
     server.PORT = port
     server.LOAD_ON_STARTUP = config.get("server", {}).get("load_on_startup", True)
@@ -205,6 +206,8 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
     ]
     if config["models"].get("vad"):
         cmd.extend(["--vad", config["models"]["vad"]])
+    if config["models"].get("mention"):
+        cmd.extend(["--mention", config["models"]["mention"]])
 
     model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(model_type_key)

@@ -26,6 +26,11 @@ class Octoasr < Formula
     cp_r "utils", site_packages
     cp "server.py", site_packages
 
+    # The @mention judge reads its system prompt from docs/prompt_v3.txt.
+    # docs/ is not otherwise packaged, so copy just this file next to core/.
+    (Pathname(site_packages)/"docs").mkpath
+    cp "docs/prompt_v3.txt", "#{site_packages}/docs/prompt_v3.txt"
+
     (bin/"octoasr").write <<~SH
       #!/bin/bash
       SCRIPT_PATH="$0"

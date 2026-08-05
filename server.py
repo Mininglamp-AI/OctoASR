@@ -33,7 +33,8 @@ from core.auto_model import AutoModel
 
 from utils.hotwords_extractor import extract_terms as extract_hotwords_from_context
 from utils.repetition_detector import check_repetition, has_repetition
-from utils import mention
+from utils import mention as mention_replacer
+from core.mention import MentionJudge, apply_mention, is_group_chat, empty_result
 
 
 def _setup_logger() -> logging.Logger:
@@ -62,6 +63,8 @@ logger = _setup_logger()
 
 MODEL_PATH: Optional[str] = None
 VAD_MODEL_PATH: Optional[str] = None
+MENTION_MODEL_PATH: Optional[str] = None
+MENTION_LOAD_COOLDOWN = 60  # seconds; cooldown after a failed mention-model load
 MAX_FILE_SIZE = 30 * 1024 * 1024
 MAX_DURATION = 660
 MODEL_NAME = "octoasr"
@@ -90,6 +93,10 @@ _model: Optional[AutoModel] = None
 _model_lock = Lock()
 _generate_lock: Optional[asyncio.Lock] = None
 _model_executor: Optional[ThreadPoolExecutor] = None
+
+_mention_model: Optional[MentionJudge] = None
+_mention_lock = Lock()
+_mention_last_fail_ts = 0.0
 
 
 def error_location(exc: Optional[BaseException] = None, caller_depth: int = 2) -> str:
@@ -201,6 +208,43 @@ def get_model() -> AutoModel:
     return _model
 
 
+def get_mention_model() -> Optional[MentionJudge]:
+    """Lazily load the mention judge model with cooldown-based retry.
+
+    Returns None when the feature is disabled (no path) or when a recent load
+    attempt failed and we are still within the cooldown window. A failed load
+    is swallowed (logged) so it never breaks the transcription flow; after the
+    cooldown the next group-chat request retries, allowing transient failures
+    to self-heal.
+    """
+    global _mention_model, _mention_last_fail_ts
+    if MENTION_MODEL_PATH is None:
+        return None
+    if _mention_model is not None:
+        return _mention_model
+    if time.time() - _mention_last_fail_ts < MENTION_LOAD_COOLDOWN:
+        return None  # in cooldown, skip retry
+    with _mention_lock:
+        if _mention_model is None:
+            try:
+                logger.info("[mention] loading model: %s", MENTION_MODEL_PATH)
+                _mention_model = MentionJudge.from_pretrained(MENTION_MODEL_PATH)
+            except Exception:
+                _mention_last_fail_ts = time.time()
+                logger.exception("[mention] model load failed, will retry after cooldown")
+                return None
+    return _mention_model
+
+
+def judge_mention(asr_text: str, chat_context: Optional[str], member_context: Optional[str]) -> Optional[dict]:
+    """Run the mention judgement (only called for group chats). Returns None
+    when the model is unavailable."""
+    model = get_mention_model()
+    if model is None:
+        return None
+    return model.judge(asr_text, chat_context or "", member_context or "")
+
+
 async def run_model_worker(func, *args, **kwargs):
     if _model_executor is None:
         raise RuntimeError("model executor is not initialized")
@@ -216,6 +260,11 @@ async def lifespan(app: FastAPI):
     _model_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="octoasr-model")
     if LOAD_ON_STARTUP:
         await run_model_worker(get_model)
+        if MENTION_MODEL_PATH:
+            # Load the mention judge alongside the ASR model. A failed load is
+            # swallowed inside get_mention_model (cooldown) and must not block
+            # service startup.
+            await run_model_worker(get_mention_model)
     try:
         yield
     finally:
@@ -541,10 +590,10 @@ async def transcribe_voice(
             # e.g. "艾特维杰" / "艾特 维杰" -> "@维杰"
             transcript = transcript.replace('[NO_SPEECH]', '')
             transcript = re.sub(r"艾特\s*", "@", transcript)
-            transcript = mention.replace(transcript)
+            transcript = mention_replacer.replace(transcript)
         except Exception as exc:
             logger.exception("mention.replace failed: %s", exc)
-        
+
         extras["transcript"] = transcript
 
         audio_duration = extras.get("audio_duration")
@@ -564,6 +613,38 @@ async def transcribe_voice(
             )
         extras["repetition_detected"] = False
 
+        # --- @mention semantic judgement -----------------------------------
+        # Decide whether to prefix "@someone " to the transcript. Any failure
+        # here degrades silently to the plain transcript; it must never fail
+        # the request. Private/non-group chats short-circuit before touching
+        # the model (no lock, no worker thread).
+        mention_result = None
+        final_text = transcript
+        try:
+            mention_chat = tail_text(chat_context, CHAT_CONTEXT_LIMIT)
+            mention_member = tail_text(member_context, MEMBER_CONTEXT_LIMIT)
+            if MENTION_MODEL_PATH is None:
+                mention_result = None  # feature disabled
+            elif not is_group_chat(mention_chat):
+                mention_result = empty_result(skipped="not_group_chat")
+            else:
+                assert _generate_lock is not None
+                async with _generate_lock:
+                    mention_result = await run_model_worker(
+                        judge_mention, transcript, mention_chat, mention_member)
+            final_text = apply_mention(transcript, mention_result)
+        except Exception as exc:
+            logger.exception("[mention] judge failed: %s", exc)
+            final_text = transcript
+        extras["mention"] = mention_result
+        extras["transcript_with_mention"] = final_text
+        if mention_result and mention_result.get("should_mention"):
+            logger.info(
+                "[mention] should_mention=true targets=%s",
+                [t.get("display_name") for t in mention_result.get("targets", [])
+                 if isinstance(t, dict)],
+            )
+
         elapsed_ms = int((time.time() - started_at) * 1000)
         if DEBUG_MODE:
             logger.info(
@@ -582,7 +663,8 @@ async def transcribe_voice(
             )
         return await finalize({
             "status": 200,
-            "text": apply_mode(mode, context_text, transcript),
+            "text": apply_mode(mode, context_text, final_text),
+            "mention": mention_result,
             "m": MODEL_NAME,
             "engine": ENGINE_NAME,
         })
@@ -699,6 +781,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=PORT)
     parser.add_argument("--model-path", required=True)
     parser.add_argument("--vad-model-path", default=VAD_MODEL_PATH)
+    parser.add_argument("--mention-model-path", default=MENTION_MODEL_PATH,
+                        help="Optional mlx_vlm model for @mention judgement; omit to disable")
     parser.add_argument("--max-file-size", type=int, default=MAX_FILE_SIZE)
     parser.add_argument("--max-duration", type=int, default=MAX_DURATION)
     parser.add_argument("--response-model", default=MODEL_NAME)
@@ -712,10 +796,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def configure_runtime(args: argparse.Namespace) -> None:
-    global MODEL_PATH, VAD_MODEL_PATH, MAX_FILE_SIZE, MAX_DURATION, MODEL_NAME, MODEL_TYPE, ENGINE_NAME
+    global MODEL_PATH, VAD_MODEL_PATH, MENTION_MODEL_PATH, MAX_FILE_SIZE, MAX_DURATION, MODEL_NAME, MODEL_TYPE, ENGINE_NAME
     global AUTH_TOKEN, HOST, PORT, LOAD_ON_STARTUP, DEBUG_MODE
     MODEL_PATH = args.model_path
     VAD_MODEL_PATH = args.vad_model_path or None
+    MENTION_MODEL_PATH = args.mention_model_path or None
     MAX_FILE_SIZE = args.max_file_size
     MAX_DURATION = args.max_duration
     MODEL_NAME = args.response_model

@@ -23,6 +23,7 @@ LOCAL_MODELS_DIR = PROJECT_ROOT / "models"
 
 DEFAULT_ASR_MODEL = "OctoASR-1.7B-Instruct-1.0-MLX-8bit"
 DEFAULT_VAD_MODEL = "fsmn-vad-mlx"
+DEFAULT_MENTION_MODEL = "qwen3.5-mlx"
 DEFAULT_MODEL_TYPE = "qwen3-asr"
 
 MODEL_TYPES = {

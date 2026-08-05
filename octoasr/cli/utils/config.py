@@ -14,6 +14,7 @@ from .constants import (
     DEFAULT_PORT,
     DEFAULT_ASR_MODEL,
     DEFAULT_VAD_MODEL,
+    DEFAULT_MENTION_MODEL,
     DEFAULT_MODEL_TYPE,
     USER_MODELS_DIR,
     HOMEBREW_MODELS_DIR,
@@ -38,12 +39,14 @@ def get_default_config() -> dict[str, Any]:
     if not asr_path.exists():
         asr_path = models_dir / DEFAULT_ASR_MODEL
     vad_path = models_dir / DEFAULT_VAD_MODEL
+    mention_path = models_dir / DEFAULT_MENTION_MODEL
 
     return {
         "models": {
             "type": DEFAULT_MODEL_TYPE,
             "asr": str(asr_path),
             "vad": str(vad_path) if vad_path.exists() else None,
+            "mention": str(mention_path) if mention_path.exists() else None,
         },
         "server": {
             "port": DEFAULT_PORT,
