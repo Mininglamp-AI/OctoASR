@@ -61,6 +61,11 @@ cp -r "$PROJECT_DIR/core" "$SITE_PACKAGES/"
 cp -r "$PROJECT_DIR/utils" "$SITE_PACKAGES/"
 cp "$PROJECT_DIR/server.py" "$SITE_PACKAGES/"
 
+# @mention judge reads its system prompt from docs/prompt.txt (docs/ is not
+# otherwise packaged, so copy just this file).
+mkdir -p "$SITE_PACKAGES/docs"
+cp "$PROJECT_DIR/docs/prompt.txt" "$SITE_PACKAGES/docs/prompt.txt"
+
 # 3. 创建启动脚本
 echo "  [4/6] 创建启动脚本..."
 mkdir -p "$INSTALL_DIR/bin"

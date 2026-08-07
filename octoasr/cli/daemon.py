@@ -19,6 +19,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--vad", default=None)
+    parser.add_argument("--mention", default=None)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--model-type", default="auto", choices=["auto", "funasr", "qwen3_asr"])
     parser.add_argument("--load-on-startup", action="store_true")
@@ -34,6 +35,7 @@ def main():
 
     server.MODEL_PATH = args.model
     server.VAD_MODEL_PATH = args.vad
+    server.MENTION_MODEL_PATH = args.mention
     server.MODEL_TYPE = args.model_type
     server.HOST = "0.0.0.0"
     server.PORT = args.port

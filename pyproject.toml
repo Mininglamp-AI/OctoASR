@@ -19,6 +19,7 @@ dependencies = [
     "mlx>=0.5",
     "mlx-lm",
     "mlx-audio",
+    "mlx-vlm",
     "transformers",
     "huggingface_hub",
     "modelscope",

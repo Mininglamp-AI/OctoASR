@@ -1,3 +1,7 @@
+# Models (large binaries, downloaded/copied at deploy time)
+models/*
+!models/README.md
+
 # Build
 build/
 dist/

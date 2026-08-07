@@ -100,6 +100,8 @@ def doctor():
             checks.append(check_model(config["models"]["asr"], "ASR"))
         if config.get("models", {}).get("vad"):
             checks.append(check_model(config["models"]["vad"], "VAD"))
+        if config.get("models", {}).get("mention"):
+            checks.append(check_model(config["models"]["mention"], "Mention"))
         port = config.get("server", {}).get("port", 8787)
         checks.append(check_port(port))
 

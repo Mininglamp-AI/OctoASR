@@ -26,6 +26,11 @@ class Octoasr < Formula
     cp_r "utils", site_packages
     cp "server.py", site_packages
 
+    # The @mention judge reads its system prompt from docs/prompt.txt.
+    # docs/ is not otherwise packaged, so copy just this file next to core/.
+    (Pathname(site_packages)/"docs").mkpath
+    cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"
+
     (bin/"octoasr").write <<~SH
       #!/bin/bash
       SCRIPT_PATH="$0"
@@ -42,7 +47,7 @@ class Octoasr < Formula
     <<~EOS
       OctoASR installed successfully!
 
-      Models will be downloaded automatically on first run (~1-2 GB).
+      ASR, VAD, and Mention models will be downloaded automatically on first run (several GB).
 
       Quick start:
         octoasr start              # Start service (auto-downloads models on first run)
