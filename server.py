@@ -65,6 +65,7 @@ MODEL_PATH: Optional[str] = None
 VAD_MODEL_PATH: Optional[str] = None
 MENTION_MODEL_PATH: Optional[str] = None
 MENTION_LOAD_COOLDOWN = 60  # seconds; cooldown after a failed mention-model load
+AUTO_MENTION_DISABLED = False
 MAX_FILE_SIZE = 30 * 1024 * 1024
 MAX_DURATION = 660
 MODEL_NAME = "octoasr"
@@ -467,8 +468,10 @@ async def transcribe_voice(
     personal_context: Optional[str] = Form(None),
     member_context: Optional[str] = Form(None),
     mode: str = Form("smart"),
+    disable_auto_mention: Optional[bool] = Form(None),
     authorization: Optional[str] = Header(None),
 ):
+    global AUTO_MENTION_DISABLED
     started_at = time.time()
     request_info: dict[str, Any] = {
         "audio_filename": audio.filename if audio is not None else None,
@@ -482,6 +485,7 @@ async def transcribe_voice(
         "member_context_len": len(member_context) if member_context else 0,
         "member_context": tail_text(member_context, MEMBER_CONTEXT_LIMIT),
         "mode": mode,
+        "disable_auto_mention_requested": disable_auto_mention,
     }
     extras: dict[str, Any] = {}
     audio_path: Optional[Path] = None
@@ -537,6 +541,11 @@ async def transcribe_voice(
     context_text = tail_text(context_text, CONTEXT_TEXT_LIMIT)
     if mode == "edit_only" and not context_text:
         return await finalize(api_error(400, "context_text is required for edit_only mode", request=request))
+
+    if disable_auto_mention is not None:
+        AUTO_MENTION_DISABLED = disable_auto_mention
+    auto_mention_disabled = AUTO_MENTION_DISABLED
+    request_info["disable_auto_mention"] = auto_mention_disabled
 
     try:
         audio_path = await save_upload(audio)
@@ -623,7 +632,9 @@ async def transcribe_voice(
         try:
             mention_chat = tail_text(chat_context, CHAT_CONTEXT_LIMIT)
             mention_member = tail_text(member_context, MEMBER_CONTEXT_LIMIT)
-            if MENTION_MODEL_PATH is None:
+            if auto_mention_disabled:
+                mention_result = empty_result(skipped="disabled_by_request")
+            elif MENTION_MODEL_PATH is None:
                 mention_result = None  # feature disabled
             elif not is_group_chat(mention_chat):
                 mention_result = empty_result(skipped="not_group_chat")
@@ -797,13 +808,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--engine", default=ENGINE_NAME)
     parser.add_argument("--auth-token", default=AUTH_TOKEN)
     parser.add_argument("--load-on-startup", action=argparse.BooleanOptionalAction, default=LOAD_ON_STARTUP)
+    parser.add_argument("--disable-auto-mention", action=argparse.BooleanOptionalAction,
+                        default=AUTO_MENTION_DISABLED,
+                        help="Disable semantic auto-@ for this server run")
     parser.add_argument("--debug", action="store_true", default=DEBUG_MODE, help="启用调试模式，记录详细日志")
     return parser.parse_args()
 
 
 def configure_runtime(args: argparse.Namespace) -> None:
     global MODEL_PATH, VAD_MODEL_PATH, MENTION_MODEL_PATH, MAX_FILE_SIZE, MAX_DURATION, MODEL_NAME, MODEL_TYPE, ENGINE_NAME
-    global AUTH_TOKEN, HOST, PORT, LOAD_ON_STARTUP, DEBUG_MODE
+    global AUTH_TOKEN, HOST, PORT, LOAD_ON_STARTUP, AUTO_MENTION_DISABLED, DEBUG_MODE
     MODEL_PATH = args.model_path
     VAD_MODEL_PATH = args.vad_model_path or None
     MENTION_MODEL_PATH = args.mention_model_path or None
@@ -816,6 +830,7 @@ def configure_runtime(args: argparse.Namespace) -> None:
     HOST = args.host
     PORT = args.port
     LOAD_ON_STARTUP = args.load_on_startup
+    AUTO_MENTION_DISABLED = args.disable_auto_mention
     DEBUG_MODE = args.debug
 
 

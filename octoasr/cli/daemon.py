@@ -24,6 +24,8 @@ def main():
     parser.add_argument("--model-type", default="auto", choices=["auto", "funasr", "qwen3_asr"])
     parser.add_argument("--load-on-startup", action="store_true")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--disable-auto-mention", action="store_true",
+                        help="Disable semantic auto-@ for this service run")
     args = parser.parse_args()
 
     signal.signal(signal.SIGTERM, signal_handler)
@@ -41,6 +43,7 @@ def main():
     server.PORT = args.port
     server.LOAD_ON_STARTUP = args.load_on_startup
     server.DEBUG_MODE = args.debug
+    server.AUTO_MENTION_DISABLED = args.disable_auto_mention
 
     import uvicorn
 
