@@ -69,10 +69,8 @@ def _detect_preferred_source() -> str:
     if hf_latency == float("inf") and ms_latency == float("inf"):
         return "modelscope"
 
-    # Prefer HF only when it is meaningfully fast: reachable and not much
-    # slower than ModelScope. A small bias toward HF avoids flapping when the
-    # two are close, but "reachable but slow" HF loses to a snappy ModelScope.
-    return "hf" if hf_latency <= ms_latency * 1.5 else "modelscope"
+    # Prefer the source with the lower measured connection latency.
+    return "hf" if hf_latency <= ms_latency else "modelscope"
 
 
 def _is_model_complete(model_dir: Path) -> bool:
