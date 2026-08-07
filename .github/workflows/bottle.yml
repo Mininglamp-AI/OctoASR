@@ -94,6 +94,8 @@ jobs:
 
           sed -i '' "s|url \".*\"|url \"https://github.com/${REPO}/archive/refs/tags/${TAG_NAME}.tar.gz\"|" "$FORMULA_PATH"
           sed -i '' "s|sha256 \"[0-9a-f]*\"|sha256 \"${SOURCE_SHA256}\"|" "$FORMULA_PATH"
+          sed -i '' 's|python@3.13|python@3.12|g' "$FORMULA_PATH"
+          sed -i '' 's|python3.13|python3.12|g' "$FORMULA_PATH"
           sed -i '' '/^[[:space:]]*bottle do$/,/^[[:space:]]*end$/d' "$FORMULA_PATH"
           sed -i '' "s|assert_match \"[0-9.]*\"|assert_match \"${VERSION}\"|" "$FORMULA_PATH"
 
