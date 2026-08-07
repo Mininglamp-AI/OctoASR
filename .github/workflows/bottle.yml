@@ -105,11 +105,23 @@ jobs:
           text = path.read_text()
           text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
           if "docs/prompt.txt" not in text:
-              needle = '          cp "server.py", site_packages\n'
-              insert = '''\n          # The @mention judge reads its system prompt from docs/prompt.txt.\n          # docs/ is not otherwise packaged, so copy just this file next to core/.\n          (Pathname(site_packages)/"docs").mkpath\n          cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"\n'''
-              if needle not in text:
-                  raise SystemExit("Could not patch formula: server.py copy line not found")
-              text = text.replace(needle, needle + insert, 1)
+              lines = text.splitlines(keepends=True)
+              insert_at = next(
+                  (i for i, line in enumerate(lines) if '(bin/"octoasr").write' in line),
+                  None,
+              )
+              if insert_at is None:
+                  raise SystemExit("Could not patch formula: octoasr wrapper line not found")
+              indent = lines[insert_at][:len(lines[insert_at]) - len(lines[insert_at].lstrip())]
+              insert = [
+                  "\n",
+                  f'{indent}# The @mention judge reads its system prompt from docs/prompt.txt.\n',
+                  f'{indent}# docs/ is not otherwise packaged, so copy just this file next to core/.\n',
+                  f'{indent}(Pathname(site_packages)/"docs").mkpath\n',
+                  f'{indent}cp "docs/prompt.txt", "#{{site_packages}}/docs/prompt.txt"\n',
+              ]
+              lines[insert_at:insert_at] = insert
+              text = "".join(lines)
           path.write_text(text)
           PY
 
