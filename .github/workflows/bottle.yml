@@ -106,7 +106,7 @@ jobs:
           path = Path(sys.argv[1])
           text = path.read_text()
           text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
-          if "Mininglamp-AI/cider" not in text:
+          if "mininglamp-cider==0.8.0" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
                   (i + 1 for i, line in enumerate(lines) if 'buildpath' in line and 'pip' in line),
@@ -119,9 +119,7 @@ jobs:
                   "\n",
                   f'{indent}# Cider is optional acceleration; keep OctoASR installable if it is unavailable here.\n',
                   f'{indent}begin\n',
-                  f'{indent}  cider_dir = libexec/"cider"\n',
-                  f'{indent}  system "git", "clone", "https://github.com/Mininglamp-AI/cider", cider_dir\n',
-                  f'{indent}  system "env", "CIDER_FORCE_BUILD=1", venv/"bin/python", "-m", "pip", "install", "--retries", "3", "--timeout", "120", "-e", cider_dir\n',
+                  f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0"\n',
                   f'{indent}rescue\n',
                   f'{indent}  opoo "Optional Cider install failed; continuing without Cider acceleration"\n',
                   f'{indent}end\n',
@@ -242,9 +240,7 @@ jobs:
 
               # Cider is optional acceleration; keep OctoASR installable if it is unavailable here.
               begin
-                cider_dir = libexec/"cider"
-                system "git", "clone", "https://github.com/Mininglamp-AI/cider", cider_dir
-                system "env", "CIDER_FORCE_BUILD=1", venv/"bin/python", "-m", "pip", "install", "--retries", "3", "--timeout", "120", "-e", cider_dir
+                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0"
               rescue
                 opoo "Optional Cider install failed; continuing without Cider acceleration"
               end
