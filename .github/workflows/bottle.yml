@@ -206,13 +206,13 @@ jobs:
             end
 
             depends_on "ffmpeg"
-            depends_on "python@3.13"
+            depends_on "python@3.12"
             depends_on :macos => :monterey
             depends_on :arch => :arm64
 
             def install
               venv = libexec/"venv"
-              system Formula["python@3.13"].opt_bin/"python3.13", "-m", "venv", venv
+              system Formula["python@3.12"].opt_bin/"python3.12", "-m", "venv", venv
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--upgrade", "pip"
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath
 
