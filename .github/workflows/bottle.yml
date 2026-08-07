@@ -97,6 +97,22 @@ jobs:
           sed -i '' '/^[[:space:]]*bottle do$/,/^[[:space:]]*end$/d' "$FORMULA_PATH"
           sed -i '' "s|assert_match \"[0-9.]*\"|assert_match \"${VERSION}\"|" "$FORMULA_PATH"
 
+          python3 - "$FORMULA_PATH" <<'PY'
+          from pathlib import Path
+          import sys
+
+          path = Path(sys.argv[1])
+          text = path.read_text()
+          text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
+          if "docs/prompt.txt" not in text:
+              needle = '          cp "server.py", site_packages\n'
+              insert = '''\n          # The @mention judge reads its system prompt from docs/prompt.txt.\n          # docs/ is not otherwise packaged, so copy just this file next to core/.\n          (Pathname(site_packages)/"docs").mkpath\n          cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"\n'''
+              if needle not in text:
+                  raise SystemExit("Could not patch formula: server.py copy line not found")
+              text = text.replace(needle, needle + insert, 1)
+          path.write_text(text)
+          PY
+
           echo "=== Updated formula ==="
           cat "$FORMULA_PATH"
 
@@ -193,6 +209,11 @@ jobs:
               cp_r "utils", site_packages
               cp "server.py", site_packages
 
+              # The @mention judge reads its system prompt from docs/prompt.txt.
+              # docs/ is not otherwise packaged, so copy just this file next to core/.
+              (Pathname(site_packages)/"docs").mkpath
+              cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"
+
               (bin/"octoasr").write <<~SH
                 #!/bin/bash
                 SCRIPT_PATH="\$0"
@@ -209,7 +230,7 @@ jobs:
               <<~EOS
                 OctoASR installed successfully!
 
-                Models will be downloaded automatically on first run (~1-2 GB).
+                ASR, VAD, and Mention models will be downloaded automatically on first run (several GB).
 
                 Quick start:
                   octoasr start              # Start service (auto-downloads models on first run)

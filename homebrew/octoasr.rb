@@ -47,7 +47,7 @@ class Octoasr < Formula
     <<~EOS
       OctoASR installed successfully!
 
-      Models will be downloaded automatically on first run (~1-2 GB).
+      ASR, VAD, and Mention models will be downloaded automatically on first run (several GB).
 
       Quick start:
         octoasr start              # Start service (auto-downloads models on first run)
