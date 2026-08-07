@@ -148,6 +148,15 @@ class MentionJudge:
 
         system_prompt = load_prompt()
         model, processor = load(model_path)
+        try:
+            import cider
+        except ImportError:
+            cider = None
+        if cider is not None and cider.is_available():
+            import mlx.core as mx
+            stats = cider.convert_model(model.language_model)
+            mx.eval(model.parameters())
+            
         config = load_config(model_path)
         return cls(model, processor, config, system_prompt)
 
