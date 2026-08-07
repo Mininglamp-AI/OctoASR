@@ -99,7 +99,15 @@ def _check_service_health(port: int, timeout: float = 2.0) -> tuple[bool, str]:
 @click.command()
 @click.option("--foreground", "-f", is_flag=True, help="Run in foreground (for debugging)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
-def start(foreground: bool, debug: bool):
+@click.option(
+    "--disable_auto_mention",
+    "--disable-auto-mention",
+    type=bool,
+    default=False,
+    show_default=True,
+    help="Disable semantic auto-@ for this service run",
+)
+def start(foreground: bool, debug: bool, disable_auto_mention: bool = False):
     """Start OctoASR service (auto-init on first run)"""
 
     if not config_exists():
@@ -176,15 +184,15 @@ def start(foreground: bool, debug: bool):
         raise SystemExit(1)
 
     if foreground:
-        _run_server(config, port, debug)
+        _run_server(config, port, debug, disable_auto_mention)
     else:
-        _start_daemon(config, port, debug)
+        _start_daemon(config, port, debug, disable_auto_mention)
 
     from octoasr.cli.utils.update_checker import check_and_notify
     check_and_notify()
 
 
-def _run_server(config: dict, port: int, debug: bool = False):
+def _run_server(config: dict, port: int, debug: bool = False, disable_auto_mention: bool = False):
     model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
@@ -212,6 +220,7 @@ def _run_server(config: dict, port: int, debug: bool = False):
     server.PORT = port
     server.LOAD_ON_STARTUP = config.get("server", {}).get("load_on_startup", True)
     server.DEBUG_MODE = debug
+    server.AUTO_MENTION_DISABLED = disable_auto_mention
 
     model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(model_type_key)
@@ -221,7 +230,7 @@ def _run_server(config: dict, port: int, debug: bool = False):
     uvicorn.run(server.app, host="0.0.0.0", port=port, log_level="info")
 
 
-def _start_daemon(config: dict, port: int, debug: bool = False):
+def _start_daemon(config: dict, port: int, debug: bool = False, disable_auto_mention: bool = False):
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     daemon_path = Path(__file__).parent.parent / "daemon.py"
@@ -248,6 +257,8 @@ def _start_daemon(config: dict, port: int, debug: bool = False):
         cmd.append("--load-on-startup")
     if debug:
         cmd.append("--debug")
+    if disable_auto_mention:
+        cmd.append("--disable-auto-mention")
 
     with open(LOG_FILE, "a") as log:
         process = subprocess.Popen(
@@ -305,7 +316,7 @@ def restart(ctx, debug: bool):
         click.echo(success("Service stopped"))
 
     click.echo(info("Starting service..."))
-    ctx.invoke(start, foreground=False, debug=debug)
+    ctx.invoke(start, foreground=False, debug=debug, disable_auto_mention=False)
 
 
 @click.command()
