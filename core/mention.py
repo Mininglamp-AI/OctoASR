@@ -34,8 +34,8 @@ logger = logging.getLogger("server")
 # so parent.parent/docs still resolves. A secondary candidate under
 # core/prompts/ is kept as a fallback.
 _PROMPT_CANDIDATES = [
-    Path(__file__).resolve().parent.parent / "docs" / "prompt_v3.txt",
-    Path(__file__).resolve().parent / "prompts" / "prompt_v3.txt",
+    Path(__file__).resolve().parent.parent / "docs" / "prompt.txt",
+    Path(__file__).resolve().parent / "prompts" / "prompt.txt",
 ]
 
 DEFAULT_PROMPT_PATH = _PROMPT_CANDIDATES[0]
