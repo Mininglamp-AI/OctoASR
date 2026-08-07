@@ -79,6 +79,9 @@ jobs:
             tag: arm64_sonoma
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@main
 
@@ -91,39 +94,12 @@ jobs:
         run: |
           brew tap Mininglamp-AI/tap
           FORMULA_PATH="$(brew --repo Mininglamp-AI/tap)/Formula/octoasr.rb"
+          cp homebrew/octoasr.rb "$FORMULA_PATH"
 
           sed -i '' "s|url \".*\"|url \"https://github.com/${REPO}/archive/refs/tags/${TAG_NAME}.tar.gz\"|" "$FORMULA_PATH"
           sed -i '' "s|sha256 \"[0-9a-f]*\"|sha256 \"${SOURCE_SHA256}\"|" "$FORMULA_PATH"
           sed -i '' '/^[[:space:]]*bottle do$/,/^[[:space:]]*end$/d' "$FORMULA_PATH"
           sed -i '' "s|assert_match \"[0-9.]*\"|assert_match \"${VERSION}\"|" "$FORMULA_PATH"
-
-          python3 - "$FORMULA_PATH" <<'PY'
-          from pathlib import Path
-          import sys
-
-          path = Path(sys.argv[1])
-          text = path.read_text()
-          text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
-          if "docs/prompt.txt" not in text:
-              lines = text.splitlines(keepends=True)
-              insert_at = next(
-                  (i for i, line in enumerate(lines) if '(bin/"octoasr").write' in line),
-                  None,
-              )
-              if insert_at is None:
-                  raise SystemExit("Could not patch formula: octoasr wrapper line not found")
-              indent = lines[insert_at][:len(lines[insert_at]) - len(lines[insert_at].lstrip())]
-              insert = [
-                  "\n",
-                  f'{indent}# The @mention judge reads its system prompt from docs/prompt.txt.\n',
-                  f'{indent}# docs/ is not otherwise packaged, so copy just this file next to core/.\n',
-                  f'{indent}(Pathname(site_packages)/"docs").mkpath\n',
-                  f'{indent}cp "docs/prompt.txt", "#{{site_packages}}/docs/prompt.txt"\n',
-              ]
-              lines[insert_at:insert_at] = insert
-              text = "".join(lines)
-          path.write_text(text)
-          PY
 
           echo "=== Updated formula ==="
           cat "$FORMULA_PATH"
