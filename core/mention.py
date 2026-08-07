@@ -156,6 +156,7 @@ class MentionJudge:
             import mlx.core as mx
             stats = cider.convert_model(model.language_model)
             mx.eval(model.parameters())
+            logger.info("[mention] cider enabled: %s", stats)
             
         config = load_config(model_path)
         return cls(model, processor, config, system_prompt)
