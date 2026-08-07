@@ -23,7 +23,6 @@ dependencies = [
     "transformers",
     "huggingface_hub",
     "modelscope",
-    "mininglamp-cider==0.8.0",
     "tqdm",
     "soundfile",
 ]
