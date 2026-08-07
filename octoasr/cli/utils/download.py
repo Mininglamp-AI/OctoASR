@@ -303,12 +303,20 @@ def download_from_github(model_name: str, target_dir: Path) -> Path:
         raise
 
 
+def _model_label(model_name: str, is_vad: bool = False) -> str:
+    if is_vad:
+        return "VAD"
+    if "mention" in model_name.lower():
+        return "Mention"
+    return "ASR"
+
+
 def ensure_model(model_name: str, is_vad: bool = False) -> Path:
     existing = find_model_in_dirs(model_name, is_vad=is_vad)
     if existing:
         return existing
 
-    model_type_label = "VAD" if is_vad else "ASR"
+    model_type_label = _model_label(model_name, is_vad=is_vad)
     click.echo(info(f"Downloading {model_type_label} model: {model_name} ..."))
 
     USER_MODELS_DIR.mkdir(parents=True, exist_ok=True)

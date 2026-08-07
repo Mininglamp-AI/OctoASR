@@ -39,7 +39,9 @@ def get_default_config() -> dict[str, Any]:
     if not asr_path.exists():
         asr_path = models_dir / DEFAULT_ASR_MODEL
     vad_path = models_dir / DEFAULT_VAD_MODEL
-    mention_path = models_dir / DEFAULT_MENTION_MODEL
+    mention_path = models_dir / model_namespace(DEFAULT_MENTION_MODEL) / DEFAULT_MENTION_MODEL
+    if not mention_path.exists():
+        mention_path = models_dir / DEFAULT_MENTION_MODEL
 
     return {
         "models": {

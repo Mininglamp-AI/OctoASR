@@ -10,12 +10,21 @@ import click
 
 from octoasr.cli.utils.config import load_config, save_config, config_exists, get_models_dir
 from octoasr.cli.utils.console import success, error, warning, info, print_header, print_footer, interactive_select
-from octoasr.cli.utils.constants import HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR, USER_MODELS_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE, model_namespace
+from octoasr.cli.utils.constants import (
+    HF_REPO_MAP,
+    HOMEBREW_MODELS_DIR,
+    LOCAL_MODELS_DIR,
+    MODELSCOPE_REPO_MAP,
+    MODEL_TYPES,
+    DEFAULT_MODEL_TYPE,
+    USER_MODELS_DIR,
+    model_namespace,
+)
 from octoasr.cli.utils.process import get_pid, stop_process
 
 
 def find_models(models_dir: Path) -> dict:
-    result = {"asr": [], "vad": []}
+    result = {"asr": [], "vad": [], "mention": []}
 
     if not models_dir.exists():
         return result
@@ -26,10 +35,9 @@ def find_models(models_dir: Path) -> dict:
                 continue
             if (path / "config.json").exists():
                 name = path.name
-                if "vad" in name.lower() or "fsmn" in name.lower():
-                    result["vad"].append((name, path))
-                else:
-                    result["asr"].append((name, path))
+                category = _model_category(name, path)
+                if category:
+                    result[category].append((name, path))
             else:
                 scan_dir(path)
 
@@ -38,17 +46,39 @@ def find_models(models_dir: Path) -> dict:
 
 
 def get_available_models() -> dict:
-    result = {"asr": [], "vad": []}
+    result = {"asr": [], "vad": [], "mention": []}
     seen = set()
     for models_dir in [USER_MODELS_DIR, HOMEBREW_MODELS_DIR, LOCAL_MODELS_DIR]:
         if models_dir.exists():
             found = find_models(models_dir)
-            for category in ("asr", "vad"):
+            for category in ("asr", "vad", "mention"):
                 for name, path in found[category]:
-                    if name not in seen:
+                    key = (category, name)
+                    if key not in seen:
                         result[category].append((name, path))
-                        seen.add(name)
+                        seen.add(key)
     return result
+
+
+def _model_category(model_name: str, model_path: Path) -> str | None:
+    lower_name = model_name.lower()
+    if "vad" in lower_name or "fsmn" in lower_name:
+        return "vad"
+    if "mention" in lower_name:
+        return "mention"
+
+    try:
+        with open(model_path / "config.json", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return None
+
+    model_type = data.get("model_type") or data.get("thinker_config", {}).get("model_type")
+    if model_type:
+        for spec in MODEL_TYPES.values():
+            if spec["server_type"] == model_type:
+                return "asr"
+    return None
 
 
 def resolve_model_path(model_name: str) -> Path | None:
@@ -65,6 +95,13 @@ def resolve_model_path(model_name: str) -> Path | None:
         if candidate.exists():
             return candidate
     return None
+
+
+def _download_known_model(model_name: str) -> Path | None:
+    if model_name not in HF_REPO_MAP and model_name not in MODELSCOPE_REPO_MAP:
+        return None
+    from octoasr.cli.utils.download import ensure_model
+    return ensure_model(model_name, is_vad=("vad" in model_name.lower() or "fsmn" in model_name.lower()))
 
 
 def switch_engine(config: dict, engine_key: str) -> None:
@@ -185,6 +222,10 @@ def model_info():
         click.echo(f"  VAD:  {Path(config['models']['vad']).name}")
     else:
         click.echo(f"  VAD:  disabled")
+    if config["models"].get("mention"):
+        click.echo(f"  Mention: {Path(config['models']['mention']).name}")
+    else:
+        click.echo(f"  Mention: disabled")
     print_footer()
 
 
@@ -200,6 +241,7 @@ def model_list():
     current_type = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     current_asr = Path(config["models"]["asr"]).name
     current_vad = Path(config["models"]["vad"]).name if config["models"].get("vad") else None
+    current_mention = Path(config["models"]["mention"]).name if config["models"].get("mention") else None
 
     models = get_available_models()
 
@@ -224,12 +266,19 @@ def model_list():
             suffix = " (active)" if name == current_vad else ""
             click.echo(f"    {marker} {name}{suffix}")
 
+    if models["mention"]:
+        click.echo("\n  Mention Models:")
+        for name, path in models["mention"]:
+            marker = "*" if name == current_mention else " "
+            suffix = " (active)" if name == current_mention else ""
+            click.echo(f"    {marker} {name}{suffix}")
+
     print_footer()
 
 
 @model.command("use")
 @click.argument("model_name")
-@click.option("--type", "-t", "model_type", type=click.Choice(["asr", "vad"]), default=None)
+@click.option("--type", "-t", "model_type", type=click.Choice(["asr", "vad", "mention"]), default=None)
 def model_use(model_name: str, model_type: str):
     """Switch model
 
@@ -254,18 +303,14 @@ def model_use(model_name: str, model_type: str):
     found_type = model_type
 
     if not model_type:
-        for name, path in models["asr"]:
-            if name == model_name:
-                found_path = path
-                found_type = "asr"
-                break
-
-        if not found_path:
-            for name, path in models["vad"]:
+        for category in ("asr", "vad", "mention"):
+            for name, path in models[category]:
                 if name == model_name:
                     found_path = path
-                    found_type = "vad"
+                    found_type = category
                     break
+            if found_path:
+                break
     else:
         for name, path in models[model_type]:
             if name == model_name:
@@ -273,9 +318,15 @@ def model_use(model_name: str, model_type: str):
                 break
 
     if not found_path:
-        click.echo(error(f"Model not found: {model_name}"))
-        click.echo(info("Run 'octoasr model list' to see available models"))
-        raise SystemExit(1)
+        found_path = _download_known_model(model_name)
+        if found_path:
+            found_type = model_type
+            if found_type is None:
+                found_type = "vad" if "vad" in model_name.lower() or "fsmn" in model_name.lower() else "mention" if "mention" in model_name.lower() else "asr"
+        else:
+            click.echo(error(f"Model not found: {model_name}"))
+            click.echo(info("Run 'octoasr model list' to see available models"))
+            raise SystemExit(1)
 
     config = load_config()
     if found_type == "asr":
@@ -284,6 +335,6 @@ def model_use(model_name: str, model_type: str):
         config["models"][found_type] = str(found_path)
         save_config(config)
 
-    type_name = "ASR" if found_type == "asr" else "VAD"
+    type_name = {"asr": "ASR", "vad": "VAD", "mention": "Mention"}[found_type]
     click.echo(success(f"Switched {type_name} model: {model_name}"))
     click.echo(warning("Restart required to take effect: octoasr restart"))

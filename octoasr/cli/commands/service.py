@@ -29,7 +29,15 @@ from octoasr.cli.utils.process import (
     get_port_process,
     get_process_uptime,
 )
-from octoasr.cli.utils.constants import DEFAULT_PORT, LOG_FILE, CONFIG_DIR, LOG_DIR, MODEL_TYPES, DEFAULT_MODEL_TYPE
+from octoasr.cli.utils.constants import (
+    DEFAULT_MENTION_MODEL,
+    DEFAULT_MODEL_TYPE,
+    DEFAULT_PORT,
+    LOG_FILE,
+    CONFIG_DIR,
+    LOG_DIR,
+    MODEL_TYPES,
+)
 from octoasr.cli.utils.download import ensure_default_models, ensure_model, find_model_in_dirs
 
 
@@ -52,6 +60,12 @@ def _do_init() -> dict:
         config["models"]["vad"] = str(vad_path)
     else:
         config["models"]["vad"] = None
+    try:
+        mention_path = ensure_model(DEFAULT_MENTION_MODEL, is_vad=False)
+        config["models"]["mention"] = str(mention_path)
+    except SystemExit:
+        click.echo(warning("Mention model unavailable, continuing without semantic @mention judge"))
+        config["models"]["mention"] = None
     save_config(config)
 
     asr_name = Path(config["models"]["asr"]).name
@@ -60,6 +74,9 @@ def _do_init() -> dict:
     if config["models"].get("vad"):
         vad_name = Path(config["models"]["vad"]).name
         click.echo(f"    VAD model: {vad_name}")
+    if config["models"].get("mention"):
+        mention_name = Path(config["models"]["mention"]).name
+        click.echo(f"    Mention model: {mention_name}")
     click.echo(f"    Port: {config['server']['port']}")
 
     return config
@@ -113,6 +130,19 @@ def start(foreground: bool, debug: bool):
         except SystemExit:
             click.echo(warning("VAD model unavailable, continuing without VAD"))
             config["models"]["vad"] = None
+            save_config(config)
+
+    mention_config = config.get("models", {}).get("mention")
+    mention_name = Path(mention_config).name if mention_config else ""
+    if not mention_config or "mention" not in mention_name.lower() or not Path(mention_config).exists():
+        click.echo(info("Mention model not configured, downloading default..."))
+        try:
+            mention_path = ensure_model(DEFAULT_MENTION_MODEL, is_vad=False)
+            config["models"]["mention"] = str(mention_path)
+            save_config(config)
+        except SystemExit:
+            click.echo(warning("Mention model unavailable, continuing without semantic @mention judge"))
+            config["models"]["mention"] = None
             save_config(config)
 
     pid = get_pid()
