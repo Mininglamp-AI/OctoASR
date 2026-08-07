@@ -106,28 +106,6 @@ jobs:
           path = Path(sys.argv[1])
           text = path.read_text()
           text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
-          if "Mininglamp-AI/cider.git" not in text:
-              lines = text.splitlines(keepends=True)
-              insert_at = next(
-                  (i + 1 for i, line in enumerate(lines) if 'buildpath' in line and 'pip' in line),
-                  None,
-              )
-              if insert_at is None:
-                  raise SystemExit("Could not patch formula: pip buildpath install line not found")
-              indent = lines[insert_at - 1][:len(lines[insert_at - 1]) - len(lines[insert_at - 1].lstrip())]
-              cont = indent + "       "
-              insert = [
-                  "\n",
-                  f'{indent}# Cider is an optional acceleration package; keep OctoASR installable if it cannot build here.\n',
-                  f'{indent}begin\n',
-                  f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120",\n',
-                  f'{cont}"git+https://github.com/Mininglamp-AI/cider.git@main"\n',
-                  f'{indent}rescue\n',
-                  f'{indent}  opoo "Optional Cider install failed; continuing without Cider acceleration"\n',
-                  f'{indent}end\n',
-              ]
-              lines[insert_at:insert_at] = insert
-              text = "".join(lines)
           if "docs/prompt.txt" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
@@ -239,14 +217,6 @@ jobs:
               system Formula["python@3.12"].opt_bin/"python3.12", "-m", "venv", venv
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--upgrade", "pip"
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath
-
-              # Cider is an optional acceleration package; keep OctoASR installable if it cannot build here.
-              begin
-                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120",
-                       "git+https://github.com/Mininglamp-AI/cider.git@main"
-              rescue
-                opoo "Optional Cider install failed; continuing without Cider acceleration"
-              end
 
               site_packages = Dir[venv/"lib/python*/site-packages"].first
               cp_r "core", site_packages
