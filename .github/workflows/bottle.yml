@@ -103,6 +103,7 @@ jobs:
 
           python3 - "$FORMULA_PATH" <<'PY'
           from pathlib import Path
+          import re
           import sys
 
           path = Path(sys.argv[1])
@@ -124,17 +125,17 @@ jobs:
             end
           '''
 
-          old_cider_block = '''    # Cider is optional acceleration; keep OctoASR installable if it is unavailable here.
-              begin
-                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0.post1"
-              rescue
-                opoo "Optional Cider install failed; continuing without Cider acceleration"
-              end
-          '''
+          old_cider_pattern = re.compile(
+              r'\n(?P<indent>[ \t]*)# Cider is optional acceleration; keep OctoASR installable if it is unavailable here\.\n'
+              r'(?P=indent)begin\n'
+              r'(?:(?P=indent)  .*\n)*?'
+              r'(?P=indent)rescue\n'
+              r'(?:(?P=indent)  .*\n)*?'
+              r'(?P=indent)end\n',
+          )
+          text = old_cider_pattern.sub("\n", text)
 
-          if old_cider_block in text:
-              text = text.replace(old_cider_block, cider_block, 1)
-          elif "cider_supported?" not in text:
+          if "cider_supported?" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
                   (i + 1 for i, line in enumerate(lines) if 'buildpath' in line and 'pip' in line),
@@ -198,6 +199,15 @@ jobs:
 
           echo "=== Updated formula ==="
           cat "$FORMULA_PATH"
+
+          if grep -n 'mininglamp-cider==0.8.0"' "$FORMULA_PATH"; then
+            echo "::error::Stale mininglamp-cider==0.8.0 install block remains in formula"
+            exit 1
+          fi
+          if grep -n "Optional Cider install failed" "$FORMULA_PATH"; then
+            echo "::error::Stale optional Cider rescue block remains in formula"
+            exit 1
+          fi
 
       - name: Install formula with bottle build
         run: |
