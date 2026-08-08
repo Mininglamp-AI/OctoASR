@@ -108,7 +108,33 @@ jobs:
           path = Path(sys.argv[1])
           text = path.read_text()
           text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
-          if "mininglamp-cider==0.8.0.post1" not in text:
+
+          if "CIDER_VERSION" not in text:
+              text = text.replace(
+                  "class Octoasr < Formula\n",
+                  'class Octoasr < Formula\n  CIDER_VERSION = "0.8.0.post1"\n\n',
+                  1,
+              )
+
+          cider_block = '''    if cider_supported?
+              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
+              system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"
+            else
+              ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+"
+            end
+          '''
+
+          old_cider_block = '''    # Cider is optional acceleration; keep OctoASR installable if it is unavailable here.
+              begin
+                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0.post1"
+              rescue
+                opoo "Optional Cider install failed; continuing without Cider acceleration"
+              end
+          '''
+
+          if old_cider_block in text:
+              text = text.replace(old_cider_block, cider_block, 1)
+          elif "cider_supported?" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
                   (i + 1 for i, line in enumerate(lines) if 'buildpath' in line and 'pip' in line),
@@ -119,11 +145,11 @@ jobs:
               indent = lines[insert_at - 1][:len(lines[insert_at - 1]) - len(lines[insert_at - 1].lstrip())]
               insert = [
                   "\n",
-                  f'{indent}# Cider is optional acceleration; keep OctoASR installable if it is unavailable here.\n',
-                  f'{indent}begin\n',
-                  f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0.post1"\n',
-                  f'{indent}rescue\n',
-                  f'{indent}  opoo "Optional Cider install failed; continuing without Cider acceleration"\n',
+                  f'{indent}if cider_supported?\n',
+                  f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{{CIDER_VERSION}}"\n',
+                  f'{indent}  system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"\n',
+                  f'{indent}else\n',
+                  f'{indent}  ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+"\n',
                   f'{indent}end\n',
               ]
               lines[insert_at:insert_at] = insert
@@ -146,6 +172,27 @@ jobs:
               ]
               lines[insert_at:insert_at] = insert
               text = "".join(lines)
+          if "def cider_supported?" not in text:
+              helper = '''
+
+            private
+
+            def cider_supported?
+              OS.mac? &&
+                MacOS.version.to_s.split(".").first.to_i >= 26 &&
+                Hardware::CPU.arm? &&
+                apple_chip_generation >= 5
+            end
+
+            def apple_chip_generation
+              brand = Utils.safe_popen_read("sysctl", "-n", "machdep.cpu.brand_string").strip
+              match = brand.match(/Apple M(\\d+)/)
+              match ? match[1].to_i : 0
+            rescue
+              0
+            end
+          '''
+              text = text.rstrip().removesuffix("end").rstrip() + helper + "\n          end\n"
           path.write_text(text)
           PY
 
@@ -197,7 +244,7 @@ jobs:
             --dir ./bottles
 
           cd bottles
-          for tag in arm64_sequoia arm64_sonoma; do
+          for tag in arm64_sequoia arm64_sonoma arm64_tahoe; do
             FILE="octoasr-${VERSION}.${tag}.bottle.tar.gz"
             SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
             echo "${tag}_sha256=$SHA" >> "$GITHUB_OUTPUT"
@@ -211,12 +258,15 @@ jobs:
           SOURCE_SHA256: ${{ needs.create-release.outputs.source_sha256 }}
           SEQUOIA_SHA256: ${{ steps.collect.outputs.arm64_sequoia_sha256 }}
           SONOMA_SHA256: ${{ steps.collect.outputs.arm64_sonoma_sha256 }}
+          TAHOE_SHA256: ${{ steps.collect.outputs.arm64_tahoe_sha256 }}
         run: |
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/Mininglamp-AI/homebrew-tap.git" tap-repo
           cd tap-repo
 
           cat > Formula/octoasr.rb << EOF
           class Octoasr < Formula
+            CIDER_VERSION = "0.8.0.post1"
+
             desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
             homepage "https://github.com/Mininglamp-AI/octoasr"
             url "https://github.com/Mininglamp-AI/octoasr/archive/refs/tags/v${VERSION}.tar.gz"
@@ -227,6 +277,7 @@ jobs:
               root_url "https://github.com/Mininglamp-AI/octoasr/releases/download/v${VERSION}"
               sha256 cellar: :any_skip_relocation, arm64_sequoia: "${SEQUOIA_SHA256}"
               sha256 cellar: :any_skip_relocation, arm64_sonoma: "${SONOMA_SHA256}"
+              sha256 cellar: :any_skip_relocation, arm64_tahoe: "${TAHOE_SHA256}"
             end
 
             depends_on "ffmpeg"
@@ -240,11 +291,11 @@ jobs:
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--upgrade", "pip"
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath
 
-              # Cider is optional acceleration; keep OctoASR installable if it is unavailable here.
-              begin
-                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0.post1"
-              rescue
-                opoo "Optional Cider install failed; continuing without Cider acceleration"
+              if cider_supported?
+                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
+                system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"
+              else
+                ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+"
               end
 
               site_packages = Dir[venv/"lib/python*/site-packages"].first
@@ -290,6 +341,23 @@ jobs:
 
             test do
               assert_match "${VERSION}", shell_output("#{bin}/octoasr --version")
+            end
+
+            private
+
+            def cider_supported?
+              OS.mac? &&
+                MacOS.version.to_s.split(".").first.to_i >= 26 &&
+                Hardware::CPU.arm? &&
+                apple_chip_generation >= 5
+            end
+
+            def apple_chip_generation
+              brand = Utils.safe_popen_read("sysctl", "-n", "machdep.cpu.brand_string").strip
+              match = brand.match(/Apple M(\d+)/)
+              match ? match[1].to_i : 0
+            rescue
+              0
             end
           end
           EOF
