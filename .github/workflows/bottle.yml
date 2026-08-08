@@ -77,6 +77,8 @@ jobs:
             tag: arm64_sequoia
           - os: macos-14
             tag: arm64_sonoma
+          - os: macos-26
+            tag: arm64_tahoe
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Homebrew
