@@ -119,9 +119,9 @@ jobs:
 
           cider_block = '''    if cider_supported?
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
-              system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"
+              system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec('cider.lib._cider_prim')"
             else
-              ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+"
+              ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"
             end
           '''
 
@@ -134,6 +134,32 @@ jobs:
               r'(?P=indent)end\n',
           )
           text = old_cider_pattern.sub("\n", text)
+          text = text.replace(
+              'system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"',
+              "system venv/\"bin/python3\", \"-c\", \"import importlib.util; assert importlib.util.find_spec('cider.lib._cider_prim')\"",
+          )
+          text = text.replace(
+              "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+",
+              "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon",
+          )
+          text = re.sub(
+              r'\n(?P<indent>[ \t]*)def cider_supported\?\n'
+              r'(?P=indent)  OS\.mac\? &&\n'
+              r'(?P=indent)    MacOS\.version\.to_s\.split\("\\."\)\.first\.to_i >= 26 &&\n'
+              r'(?P=indent)    Hardware::CPU\.arm\? &&\n'
+              r'(?P=indent)    apple_chip_generation >= 5\n'
+              r'(?P=indent)end\n'
+              r'\n'
+              r'(?P=indent)def apple_chip_generation\n'
+              r'(?:(?P=indent)  .*\n)*?'
+              r'(?P=indent)end\n',
+              '\n\\g<indent>def cider_supported?\n'
+              '\\g<indent>  OS.mac? &&\n'
+              '\\g<indent>    MacOS.version.to_s.split(".").first.to_i >= 26 &&\n'
+              '\\g<indent>    Hardware::CPU.arm?\n'
+              '\\g<indent>end\n',
+              text,
+          )
 
           if "cider_supported?" not in text:
               lines = text.splitlines(keepends=True)
@@ -148,9 +174,9 @@ jobs:
                   "\n",
                   f'{indent}if cider_supported?\n',
                   f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{{CIDER_VERSION}}"\n',
-                  f'{indent}  system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"\n',
+                  f'{indent}  system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec(\'cider.lib._cider_prim\')"\n',
                   f'{indent}else\n',
-                  f'{indent}  ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+"\n',
+                  f'{indent}  ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"\n',
                   f'{indent}end\n',
               ]
               lines[insert_at:insert_at] = insert
@@ -181,16 +207,7 @@ jobs:
             def cider_supported?
               OS.mac? &&
                 MacOS.version.to_s.split(".").first.to_i >= 26 &&
-                Hardware::CPU.arm? &&
-                apple_chip_generation >= 5
-            end
-
-            def apple_chip_generation
-              brand = Utils.safe_popen_read("sysctl", "-n", "machdep.cpu.brand_string").strip
-              match = brand.match(/Apple M(\\d+)/)
-              match ? match[1].to_i : 0
-            rescue
-              0
+                Hardware::CPU.arm?
             end
           '''
               text = text.rstrip().removesuffix("end").rstrip() + helper + "\n          end\n"
@@ -303,9 +320,9 @@ jobs:
 
               if cider_supported?
                 system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
-                system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"
+                system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec('cider.lib._cider_prim')"
               else
-                ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+"
+                ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"
               end
 
               site_packages = Dir[venv/"lib/python*/site-packages"].first
@@ -358,16 +375,7 @@ jobs:
             def cider_supported?
               OS.mac? &&
                 MacOS.version.to_s.split(".").first.to_i >= 26 &&
-                Hardware::CPU.arm? &&
-                apple_chip_generation >= 5
-            end
-
-            def apple_chip_generation
-              brand = Utils.safe_popen_read("sysctl", "-n", "machdep.cpu.brand_string").strip
-              match = brand.match(/Apple M(\d+)/)
-              match ? match[1].to_i : 0
-            rescue
-              0
+                Hardware::CPU.arm?
             end
           end
           EOF
