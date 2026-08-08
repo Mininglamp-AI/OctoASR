@@ -108,7 +108,7 @@ jobs:
           path = Path(sys.argv[1])
           text = path.read_text()
           text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
-          if "mininglamp-cider==0.8.0" not in text:
+          if "mininglamp-cider==0.8.0.post1" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
                   (i + 1 for i, line in enumerate(lines) if 'buildpath' in line and 'pip' in line),
@@ -121,7 +121,7 @@ jobs:
                   "\n",
                   f'{indent}# Cider is optional acceleration; keep OctoASR installable if it is unavailable here.\n',
                   f'{indent}begin\n',
-                  f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0"\n',
+                  f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0.post1"\n',
                   f'{indent}rescue\n',
                   f'{indent}  opoo "Optional Cider install failed; continuing without Cider acceleration"\n',
                   f'{indent}end\n',
@@ -242,7 +242,7 @@ jobs:
 
               # Cider is optional acceleration; keep OctoASR installable if it is unavailable here.
               begin
-                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0"
+                system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==0.8.0.post1"
               rescue
                 opoo "Optional Cider install failed; continuing without Cider acceleration"
               end
