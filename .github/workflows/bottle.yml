@@ -117,13 +117,15 @@ jobs:
                   1,
               )
 
-          cider_block = '''    if cider_supported?
-              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
-              system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec('cider.lib._cider_prim')"
-            else
-              ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"
-            end
-          '''
+          cider_block = (
+              '    if cider_supported?\n'
+              '      system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"\n'
+              '      repair_cider_rpaths(site_packages)\n'
+              '      system venv/"bin/python3", "-c", "import cider.lib._cider_prim"\n'
+              '    else\n'
+              '      ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"\n'
+              '    end\n'
+          )
 
           old_cider_pattern = re.compile(
               r'\n(?P<indent>[ \t]*)# Cider is optional acceleration; keep OctoASR installable if it is unavailable here\.\n'
@@ -136,7 +138,15 @@ jobs:
           text = old_cider_pattern.sub("\n", text)
           text = text.replace(
               'system venv/"bin/python3", "-c", "import cider; assert cider.is_available()"',
-              "system venv/\"bin/python3\", \"-c\", \"import importlib.util; assert importlib.util.find_spec('cider.lib._cider_prim')\"",
+              'system venv/"bin/python3", "-c", "import cider.lib._cider_prim"',
+          )
+          text = text.replace(
+              "system venv/\"bin/python3\", \"-c\", \"import importlib.util; assert importlib.util.find_spec(\\'cider.lib._cider_prim\\')\"",
+              'system venv/"bin/python3", "-c", "import cider.lib._cider_prim"',
+          )
+          text = text.replace(
+              'system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec(\'cider.lib._cider_prim\')"',
+              'system venv/"bin/python3", "-c", "import cider.lib._cider_prim"',
           )
           text = text.replace(
               "Skipping optional Cider acceleration; requires macOS 26 on Apple M5+",
@@ -160,6 +170,28 @@ jobs:
               '\\g<indent>end\n',
               text,
           )
+          text = re.sub(
+              r'\n(?P<indent>[ \t]*)if cider_supported\?\n'
+              r'(?:(?P=indent)  .*\n)*?'
+              r'(?P=indent)else\n'
+              r'(?:(?P=indent)  .*\n)*?'
+              r'(?P=indent)end\n',
+              "\n" + cider_block,
+              text,
+              count=1,
+          )
+
+          lines = text.splitlines(keepends=True)
+          cider_at = next((i for i, line in enumerate(lines) if "if cider_supported?" in line), None)
+          site_at = next((i for i, line in enumerate(lines) if "site_packages = Dir[venv/" in line), None)
+          if cider_at is not None and site_at is not None and site_at > cider_at:
+              site_line = lines.pop(site_at)
+              cider_at = next(i for i, line in enumerate(lines) if "if cider_supported?" in line)
+              if cider_at > 0 and lines[cider_at - 1].strip():
+                  lines.insert(cider_at, "\n")
+                  cider_at += 1
+              lines.insert(cider_at, site_line)
+              text = "".join(lines)
 
           if "cider_supported?" not in text:
               lines = text.splitlines(keepends=True)
@@ -174,7 +206,8 @@ jobs:
                   "\n",
                   f'{indent}if cider_supported?\n',
                   f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{{CIDER_VERSION}}"\n',
-                  f'{indent}  system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec(\'cider.lib._cider_prim\')"\n',
+                  f'{indent}  repair_cider_rpaths(site_packages)\n',
+                  f'{indent}  system venv/"bin/python3", "-c", "import cider.lib._cider_prim"\n',
                   f'{indent}else\n',
                   f'{indent}  ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"\n',
                   f'{indent}end\n',
@@ -208,6 +241,28 @@ jobs:
               OS.mac? &&
                 MacOS.version.to_s.split(".").first.to_i >= 26 &&
                 Hardware::CPU.arm?
+            end
+
+            def repair_cider_rpaths(site_packages)
+              cider_lib = Pathname(site_packages)/"cider/lib"
+              ["_cider_prim.cpython-312-darwin.so", "libcider_prim_lib.dylib"].each do |name|
+                binary = cider_lib/name
+                system "install_name_tool", "-add_rpath", "@loader_path/../../mlx/lib", binary
+                system "codesign", "--force", "--sign", "-", binary
+              end
+            end
+          '''
+              text = text.rstrip().removesuffix("end").rstrip() + helper + "\n          end\n"
+          elif "def repair_cider_rpaths" not in text:
+              helper = '''
+
+            def repair_cider_rpaths(site_packages)
+              cider_lib = Pathname(site_packages)/"cider/lib"
+              ["_cider_prim.cpython-312-darwin.so", "libcider_prim_lib.dylib"].each do |name|
+                binary = cider_lib/name
+                system "install_name_tool", "-add_rpath", "@loader_path/../../mlx/lib", binary
+                system "codesign", "--force", "--sign", "-", binary
+              end
             end
           '''
               text = text.rstrip().removesuffix("end").rstrip() + helper + "\n          end\n"
@@ -318,14 +373,16 @@ jobs:
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--upgrade", "pip"
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath
 
+              site_packages = Dir[venv/"lib/python*/site-packages"].first
+
               if cider_supported?
                 system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
-                system venv/"bin/python3", "-c", "import importlib.util; assert importlib.util.find_spec('cider.lib._cider_prim')"
+                repair_cider_rpaths(site_packages)
+                system venv/"bin/python3", "-c", "import cider.lib._cider_prim"
               else
                 ohai "Skipping optional Cider acceleration; requires macOS 26 on Apple Silicon"
               end
 
-              site_packages = Dir[venv/"lib/python*/site-packages"].first
               cp_r "core", site_packages
               cp_r "utils", site_packages
               cp "server.py", site_packages
@@ -376,6 +433,15 @@ jobs:
               OS.mac? &&
                 MacOS.version.to_s.split(".").first.to_i >= 26 &&
                 Hardware::CPU.arm?
+            end
+
+            def repair_cider_rpaths(site_packages)
+              cider_lib = Pathname(site_packages)/"cider/lib"
+              ["_cider_prim.cpython-312-darwin.so", "libcider_prim_lib.dylib"].each do |name|
+                binary = cider_lib/name
+                system "install_name_tool", "-add_rpath", "@loader_path/../../mlx/lib", binary
+                system "codesign", "--force", "--sign", "-", binary
+              end
             end
           end
           EOF
