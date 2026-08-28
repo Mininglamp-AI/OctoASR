@@ -23,7 +23,10 @@ LOCAL_MODELS_DIR = PROJECT_ROOT / "models"
 
 DEFAULT_ASR_MODEL = "OctoASR-1.7B-Instruct-1.0-MLX-8bit"
 DEFAULT_VAD_MODEL = "fsmn-vad-mlx"
-DEFAULT_MENTION_MODEL = "OctoMention-2B-Instruct-1.0-MLX-8bit"
+DEFAULT_MENTION_MODEL = "OctoMention-2B-Instruct-1.1-MLX-8bit"
+LEGACY_MENTION_MODELS = (
+    "OctoMention-2B-Instruct-1.0-MLX-8bit",
+)
 DEFAULT_MODEL_TYPE = "qwen3-asr"
 
 MODEL_TYPES = {
@@ -45,6 +48,7 @@ HF_REPO_MAP = {
     "OctoASR-1.7B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit",
     "OctoASR-0.8B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
     "OctoMention-2B-Instruct-1.0-MLX-8bit": "Mininglamp-2718/OctoMention-2B-Instruct-1.0-MLX-8bit",
+    "OctoMention-2B-Instruct-1.1-MLX-8bit": "Mininglamp-2718/OctoMention-2B-Instruct-1.1-MLX-8bit",
     "Fun-ASR-Nano-2512-8bit": "mlx-community/Fun-ASR-Nano-2512-8bit",
     "Qwen3-ASR-1.7B-8bit": "mlx-community/Qwen3-ASR-1.7B-8bit",
     "fsmn-vad-mlx": "Mininglamp-2718/fsmn-vad-mlx",
@@ -54,10 +58,28 @@ MODELSCOPE_REPO_MAP = {
     "OctoASR-1.7B-Instruct-1.0-MLX-8bit": "Mininglamp2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit",
     "OctoASR-0.8B-Instruct-1.0-MLX-8bit": "Mininglamp2718/OctoASR-0.8B-Instruct-1.0-MLX-8bit",
     "OctoMention-2B-Instruct-1.0-MLX-8bit": "Mininglamp2718/OctoMention-2B-Instruct-1.0-MLX-8bit",
+    "OctoMention-2B-Instruct-1.1-MLX-8bit": "Mininglamp2718/OctoMention-2B-Instruct-1.1-MLX-8bit",
     "Fun-ASR-Nano-2512-8bit": "luosir001/Fun-ASR-Nano-2512-8bit",
     "Qwen3-ASR-1.7B-8bit": "luosir001/Qwen3-ASR-1_7B-8bit",
     "fsmn-vad-mlx": "Mininglamp2718/fsmn-vad-mlx",
 }
+
+HF_MODEL_URL_MAP = {
+    model_name: f"https://huggingface.co/{repo_id}"
+    for model_name, repo_id in HF_REPO_MAP.items()
+}
+
+MODELSCOPE_AI_MODEL_URL_MAP = {
+    model_name: f"https://www.modelscope.ai/models/{repo_id}"
+    for model_name, repo_id in MODELSCOPE_REPO_MAP.items()
+}
+
+MODELSCOPE_CN_MODEL_URL_MAP = {
+    model_name: f"https://modelscope.cn/models/{repo_id}"
+    for model_name, repo_id in MODELSCOPE_REPO_MAP.items()
+}
+
+MENTION_AUTO_UPGRADE_CONFIG_KEY = "mention_auto_upgraded_to"
 
 GITHUB_RELEASE_BASE_URL = "https://github.com/Mininglamp-AI/octoasr/releases/download"
 

@@ -110,6 +110,21 @@ jobs:
           text = path.read_text()
           text = text.replace("docs/prompt_v3.txt", "docs/prompt.txt")
 
+          old_prompt_block = (
+              '    # The @mention judge reads its system prompt from docs/prompt.txt.\n'
+              '    # docs/ is not otherwise packaged, so copy just this file next to core/.\n'
+              '    (Pathname(site_packages)/"docs").mkpath\n'
+              '    cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"\n'
+          )
+          new_prompt_block = (
+              '    # The @mention judge reads versioned prompts from docs/mention_prompts/.\n'
+              '    # Keep docs/prompt.txt as a fallback for custom/unknown mention models.\n'
+              '    (Pathname(site_packages)/"docs").mkpath\n'
+              '    cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"\n'
+              '    cp_r "docs/mention_prompts", "#{site_packages}/docs/mention_prompts"\n'
+          )
+          text = text.replace(old_prompt_block, new_prompt_block)
+
           if "CIDER_VERSION" not in text:
               text = text.replace(
                   "class Octoasr < Formula\n",
@@ -214,7 +229,7 @@ jobs:
               ]
               lines[insert_at:insert_at] = insert
               text = "".join(lines)
-          if "docs/prompt.txt" not in text:
+          if "docs/mention_prompts" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
                   (i for i, line in enumerate(lines) if '(bin/"octoasr").write' in line),
@@ -225,10 +240,11 @@ jobs:
               indent = lines[insert_at][:len(lines[insert_at]) - len(lines[insert_at].lstrip())]
               insert = [
                   "\n",
-                  f'{indent}# The @mention judge reads its system prompt from docs/prompt.txt.\n',
-                  f'{indent}# docs/ is not otherwise packaged, so copy just this file next to core/.\n',
+                  f'{indent}# The @mention judge reads versioned prompts from docs/mention_prompts/.\n',
+                  f'{indent}# Keep docs/prompt.txt as a fallback for custom/unknown mention models.\n',
                   f'{indent}(Pathname(site_packages)/"docs").mkpath\n',
                   f'{indent}cp "docs/prompt.txt", "#{{site_packages}}/docs/prompt.txt"\n',
+                  f'{indent}cp_r "docs/mention_prompts", "#{{site_packages}}/docs/mention_prompts"\n',
               ]
               lines[insert_at:insert_at] = insert
               text = "".join(lines)
@@ -387,10 +403,11 @@ jobs:
               cp_r "utils", site_packages
               cp "server.py", site_packages
 
-              # The @mention judge reads its system prompt from docs/prompt.txt.
-              # docs/ is not otherwise packaged, so copy just this file next to core/.
+              # The @mention judge reads versioned prompts from docs/mention_prompts/.
+              # Keep docs/prompt.txt as a fallback for custom/unknown mention models.
               (Pathname(site_packages)/"docs").mkpath
               cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"
+              cp_r "docs/mention_prompts", "#{site_packages}/docs/mention_prompts"
 
               (bin/"octoasr").write <<~SH
                 #!/bin/bash

@@ -33,9 +33,11 @@ from octoasr.cli.utils.constants import (
     DEFAULT_MENTION_MODEL,
     DEFAULT_MODEL_TYPE,
     DEFAULT_PORT,
+    LEGACY_MENTION_MODELS,
     LOG_FILE,
     CONFIG_DIR,
     LOG_DIR,
+    MENTION_AUTO_UPGRADE_CONFIG_KEY,
     MODEL_TYPES,
 )
 from octoasr.cli.utils.download import ensure_default_models, ensure_model, find_model_in_dirs
@@ -96,6 +98,47 @@ def _check_service_health(port: int, timeout: float = 2.0) -> tuple[bool, str]:
         return False, str(e)
 
 
+def _maybe_auto_upgrade_legacy_mention_model(config: dict) -> None:
+    """Auto-upgrade legacy mention model once, while preserving user choice.
+
+    Existing 1.0 users should move to the current default 1.1 model after a
+    Homebrew/code upgrade, but the old model files must stay untouched and a
+    later manual switch back to 1.0 should remain stable. The migration marker
+    makes this a one-time automatic action.
+    """
+    mention_config = config.get("models", {}).get("mention")
+    if not mention_config:
+        return
+
+    mention_path = Path(mention_config).expanduser()
+    mention_name = mention_path.name
+    if mention_name not in LEGACY_MENTION_MODELS:
+        return
+
+    migration = config.setdefault("migration", {})
+    if migration.get(MENTION_AUTO_UPGRADE_CONFIG_KEY) == DEFAULT_MENTION_MODEL:
+        return
+
+    if not mention_path.exists():
+        return
+
+    click.echo(info(
+        f"Legacy Mention model detected ({mention_name}), upgrading to {DEFAULT_MENTION_MODEL}..."
+    ))
+    try:
+        upgraded_path = ensure_model(DEFAULT_MENTION_MODEL, is_vad=False)
+    except SystemExit:
+        click.echo(warning(
+            "Mention model auto-upgrade failed; continuing with existing legacy model"
+        ))
+        return
+
+    config["models"]["mention"] = str(upgraded_path)
+    migration[MENTION_AUTO_UPGRADE_CONFIG_KEY] = DEFAULT_MENTION_MODEL
+    save_config(config)
+    click.echo(success(f"Mention model upgraded: {DEFAULT_MENTION_MODEL}"))
+
+
 @click.command()
 @click.option("--foreground", "-f", is_flag=True, help="Run in foreground (for debugging)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
@@ -140,9 +183,12 @@ def start(foreground: bool, debug: bool, disable_auto_mention: bool = False):
             config["models"]["vad"] = None
             save_config(config)
 
+    _maybe_auto_upgrade_legacy_mention_model(config)
+
     mention_config = config.get("models", {}).get("mention")
     mention_name = Path(mention_config).name if mention_config else ""
-    if not mention_config or "mention" not in mention_name.lower() or not Path(mention_config).exists():
+    mention_path = Path(mention_config).expanduser() if mention_config else None
+    if not mention_config or "mention" not in mention_name.lower() or not mention_path.exists():
         click.echo(info("Mention model not configured, downloading default..."))
         try:
             mention_path = ensure_model(DEFAULT_MENTION_MODEL, is_vad=False)

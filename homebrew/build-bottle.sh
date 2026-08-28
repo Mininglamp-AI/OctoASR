@@ -61,10 +61,11 @@ cp -r "$PROJECT_DIR/core" "$SITE_PACKAGES/"
 cp -r "$PROJECT_DIR/utils" "$SITE_PACKAGES/"
 cp "$PROJECT_DIR/server.py" "$SITE_PACKAGES/"
 
-# @mention judge reads its system prompt from docs/prompt.txt (docs/ is not
-# otherwise packaged, so copy just this file).
+# @mention judge reads versioned prompts from docs/mention_prompts/.
+# Keep docs/prompt.txt as a fallback for custom/unknown mention models.
 mkdir -p "$SITE_PACKAGES/docs"
 cp "$PROJECT_DIR/docs/prompt.txt" "$SITE_PACKAGES/docs/prompt.txt"
+cp -r "$PROJECT_DIR/docs/mention_prompts" "$SITE_PACKAGES/docs/mention_prompts"
 
 # 3. 创建启动脚本
 echo "  [4/6] 创建启动脚本..."

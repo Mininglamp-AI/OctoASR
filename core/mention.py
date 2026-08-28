@@ -28,40 +28,76 @@ logger = logging.getLogger("server")
 # System prompt loading (file-based, developer-editable, no CLI override)
 # ---------------------------------------------------------------------------
 
-# core/mention.py lives in <root>/core/, prompt lives in <root>/docs/.
-# After a brew install, `core/` is copied into site-packages and the prompt is
-# copied to site-packages/docs/ (see homebrew/octoasr.rb & build-bottle.sh),
-# so parent.parent/docs still resolves. A secondary candidate under
-# core/prompts/ is kept as a fallback.
+# core/mention.py lives in <root>/core/, prompts live in <root>/docs/.
+# After a brew install, `core/` is copied into site-packages and prompt files
+# are copied to site-packages/docs/ (see homebrew/octoasr.rb & build-bottle.sh),
+# so parent.parent/docs still resolves.
+_DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
+_PROMPT_DIR_CANDIDATES = [
+    _DOCS_DIR / "mention_prompts",
+    Path(__file__).resolve().parent / "prompts",
+]
 _PROMPT_CANDIDATES = [
-    Path(__file__).resolve().parent.parent / "docs" / "prompt.txt",
+    _DOCS_DIR / "prompt.txt",
     Path(__file__).resolve().parent / "prompts" / "prompt.txt",
+]
+_LEGACY_PROMPT_CANDIDATES = [
+    _DOCS_DIR / "prompt_bak.txt",
+    Path(__file__).resolve().parent / "prompts" / "prompt_bak.txt",
 ]
 
 DEFAULT_PROMPT_PATH = _PROMPT_CANDIDATES[0]
 
 
-def load_prompt(path: Optional[str] = None) -> str:
-    """Read the system prompt from disk.
+def _prompt_candidates_for_model(model_path: Optional[str]) -> List[Path]:
+    candidates: List[Path] = []
+    model_name = Path(str(model_path)).expanduser().name if model_path else ""
+    if model_name:
+        candidates.extend(
+            prompt_dir / f"{model_name}.txt"
+            for prompt_dir in _PROMPT_DIR_CANDIDATES
+        )
+        if "OctoMention-2B-Instruct-1.0" in model_name:
+            candidates.extend(_LEGACY_PROMPT_CANDIDATES)
+    candidates.extend(_PROMPT_CANDIDATES)
+    return candidates
+
+
+def resolve_prompt_path(
+    path: Optional[str] = None,
+    *,
+    model_path: Optional[str] = None,
+) -> Path:
+    """Resolve the prompt file for a mention model.
 
     If ``path`` is given it is used directly; otherwise the first existing
-    candidate is used. Raises FileNotFoundError with a clear message when none
-    is found (caught by MentionJudge.from_pretrained -> cooldown).
+    versioned prompt is used. Raises FileNotFoundError with a clear message
+    when none is found (caught by MentionJudge.from_pretrained -> cooldown).
     """
     if path is not None:
         p = Path(path).expanduser()
         if not p.exists():
             raise FileNotFoundError(f"mention prompt file not found: {p}")
-        return p.read_text(encoding="utf-8")
+        return p
 
-    for candidate in _PROMPT_CANDIDATES:
+    candidates = _prompt_candidates_for_model(model_path)
+    for candidate in candidates:
         if candidate.exists():
-            return candidate.read_text(encoding="utf-8")
+            return candidate
 
     raise FileNotFoundError(
         "mention prompt file not found in any candidate location: "
-        + ", ".join(str(c) for c in _PROMPT_CANDIDATES)
+        + ", ".join(str(c) for c in candidates)
     )
+
+
+def load_prompt(
+    path: Optional[str] = None,
+    *,
+    model_path: Optional[str] = None,
+) -> str:
+    """Read the system prompt from disk."""
+    return resolve_prompt_path(path, model_path=model_path).read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -117,8 +153,10 @@ def parse_json(text: str) -> Optional[Dict[str, Any]]:
 def empty_result(skipped: Optional[str] = None) -> Dict[str, Any]:
     """Uniform empty judgement, so the `mention` field shape stays consistent."""
     result: Dict[str, Any] = {
+        "sentence_type": "other",
         "is_imperative": False,
         "should_mention": False,
+        "mention_probability": 0.0,
         "targets": [],
         "confidence": 0.0,
     }
@@ -146,7 +184,9 @@ class MentionJudge:
         from mlx_vlm import load
         from mlx_vlm.utils import load_config
 
-        system_prompt = load_prompt()
+        prompt_path = resolve_prompt_path(model_path=model_path)
+        system_prompt = prompt_path.read_text(encoding="utf-8")
+        logger.info("[mention] prompt: %s", prompt_path)
         model, processor = load(model_path)
         try:
             import cider
