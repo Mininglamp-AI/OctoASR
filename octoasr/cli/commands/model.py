@@ -14,6 +14,8 @@ from octoasr.cli.utils.constants import (
     HF_REPO_MAP,
     HOMEBREW_MODELS_DIR,
     LOCAL_MODELS_DIR,
+    DEFAULT_MENTION_MODEL,
+    MENTION_AUTO_UPGRADE_CONFIG_KEY,
     MODELSCOPE_REPO_MAP,
     MODEL_TYPES,
     DEFAULT_MODEL_TYPE,
@@ -333,6 +335,10 @@ def model_use(model_name: str, model_type: str):
         switch_asr_model(config, model_name, found_path)
     else:
         config["models"][found_type] = str(found_path)
+        if found_type == "mention":
+            config.setdefault("migration", {})[
+                MENTION_AUTO_UPGRADE_CONFIG_KEY
+            ] = DEFAULT_MENTION_MODEL
         save_config(config)
 
     type_name = {"asr": "ASR", "vad": "VAD", "mention": "Mention"}[found_type]

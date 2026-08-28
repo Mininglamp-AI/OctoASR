@@ -26,10 +26,11 @@ class Octoasr < Formula
     cp_r "utils", site_packages
     cp "server.py", site_packages
 
-    # The @mention judge reads its system prompt from docs/prompt.txt.
-    # docs/ is not otherwise packaged, so copy just this file next to core/.
+    # The @mention judge reads versioned prompts from docs/mention_prompts/.
+    # Keep docs/prompt.txt as a fallback for custom/unknown mention models.
     (Pathname(site_packages)/"docs").mkpath
     cp "docs/prompt.txt", "#{site_packages}/docs/prompt.txt"
+    cp_r "docs/mention_prompts", "#{site_packages}/docs/mention_prompts"
 
     (bin/"octoasr").write <<~SH
       #!/bin/bash

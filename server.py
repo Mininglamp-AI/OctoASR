@@ -655,7 +655,10 @@ async def transcribe_voice(
             logger.info("[mention] skipped=%s", mention_result.get("skipped"))
         else:
             logger.info(
-                "[mention] is_imperative=%s should_mention=%s targets=%s",
+                "[mention] sentence_type=%s mention_probability=%s "
+                "is_imperative=%s should_mention=%s targets=%s",
+                mention_result.get("sentence_type"),
+                mention_result.get("mention_probability"),
                 mention_result.get("is_imperative"),
                 mention_result.get("should_mention"),
                 [t.get("display_name") for t in mention_result.get("targets", [])

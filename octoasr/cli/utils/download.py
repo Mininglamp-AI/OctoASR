@@ -16,7 +16,10 @@ from .constants import (
     HOMEBREW_MODELS_DIR,
     LOCAL_MODELS_DIR,
     HF_REPO_MAP,
+    HF_MODEL_URL_MAP,
     MODELSCOPE_REPO_MAP,
+    MODELSCOPE_AI_MODEL_URL_MAP,
+    MODELSCOPE_CN_MODEL_URL_MAP,
     GITHUB_RELEASE_BASE_URL,
     MODEL_TYPES,
     DEFAULT_VAD_MODEL,
@@ -341,8 +344,10 @@ def ensure_model(model_name: str, is_vad: bool = False) -> Path:
                 next_name = sources[i + 1][0]
                 click.echo(info(f"    Trying {next_name} fallback..."))
 
-    repo_id = HF_REPO_MAP.get(model_name, model_name)
+    hf_url = HF_MODEL_URL_MAP.get(model_name, f"https://huggingface.co/{model_name}")
     ms_repo_id = MODELSCOPE_REPO_MAP.get(model_name)
+    ms_ai_url = MODELSCOPE_AI_MODEL_URL_MAP.get(model_name)
+    ms_cn_url = MODELSCOPE_CN_MODEL_URL_MAP.get(model_name)
     if is_vad:
         target = f"~/.octoasr/models/{model_name}/"
     else:
@@ -351,9 +356,11 @@ def ensure_model(model_name: str, is_vad: bool = False) -> Path:
     click.echo(error(f"Could not download model: {model_name}"))
     click.echo()
     click.echo(f"    Manual download:")
-    click.echo(f"      HuggingFace: https://huggingface.co/{repo_id}")
+    click.echo(f"      HuggingFace: {hf_url}")
     if ms_repo_id:
-        click.echo(f"      ModelScope:  modelscope download --model {ms_repo_id} --local_dir {target}")
+        click.echo(f"      ModelScope AI: {ms_ai_url}")
+        click.echo(f"      ModelScope CN: {ms_cn_url}")
+        click.echo(f"      ModelScope CLI: modelscope download --model {ms_repo_id} --local_dir {target}")
     click.echo(f"      Place in: {target}")
     click.echo(f"      Then run: octoasr start")
     raise SystemExit(1)
