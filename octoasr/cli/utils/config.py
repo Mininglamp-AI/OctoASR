@@ -11,6 +11,7 @@ import yaml
 from .constants import (
     CONFIG_DIR,
     CONFIG_FILE,
+    DEFAULT_HOST,
     DEFAULT_PORT,
     DEFAULT_ASR_MODEL,
     DEFAULT_VAD_MODEL,
@@ -51,6 +52,7 @@ def get_default_config() -> dict[str, Any]:
             "mention": str(mention_path) if mention_path.exists() else None,
         },
         "server": {
+            "host": DEFAULT_HOST,
             "port": DEFAULT_PORT,
             "load_on_startup": True,
         },

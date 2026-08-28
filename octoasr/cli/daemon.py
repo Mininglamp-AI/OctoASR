@@ -6,7 +6,7 @@ import signal
 import sys
 from pathlib import Path
 
-from octoasr.cli.utils.constants import DEFAULT_PORT, PROJECT_ROOT
+from octoasr.cli.utils.constants import DEFAULT_HOST, DEFAULT_PORT, PROJECT_ROOT
 from octoasr.cli.utils.process import remove_pid
 
 
@@ -20,6 +20,7 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--vad", default=None)
     parser.add_argument("--mention", default=None)
+    parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--model-type", default="auto", choices=["auto", "funasr", "qwen3_asr"])
     parser.add_argument("--load-on-startup", action="store_true")
@@ -39,7 +40,7 @@ def main():
     server.VAD_MODEL_PATH = args.vad
     server.MENTION_MODEL_PATH = args.mention
     server.MODEL_TYPE = args.model_type
-    server.HOST = "0.0.0.0"
+    server.HOST = args.host
     server.PORT = args.port
     server.LOAD_ON_STARTUP = args.load_on_startup
     server.DEBUG_MODE = args.debug
@@ -48,7 +49,7 @@ def main():
     import uvicorn
 
     try:
-        uvicorn.run(server.app, host="0.0.0.0", port=args.port, log_level="info")
+        uvicorn.run(server.app, host=args.host, port=args.port, log_level="info")
     finally:
         remove_pid()
 
