@@ -128,13 +128,44 @@ jobs:
           if "CIDER_VERSION" not in text:
               text = text.replace(
                   "class Octoasr < Formula\n",
-                  'class Octoasr < Formula\n  CIDER_VERSION = "0.8.0.post1"\n\n',
+                  'class Octoasr < Formula\n'
+                  '  CIDER_VERSION = "0.8.0.post1"\n'
+                  '  MLX_PACKAGES = %w[\n'
+                  '    mlx==0.32.0\n'
+                  '    mlx-metal==0.32.0\n'
+                  '    mlx-lm==0.31.3\n'
+                  '    mlx-audio==0.4.7\n'
+                  '    mlx-vlm==0.6.10\n'
+                  '  ].freeze\n\n',
                   1,
+              )
+          elif "MLX_PACKAGES" not in text:
+              text = text.replace(
+                  '  CIDER_VERSION = "0.8.0.post1"\n',
+                  '  CIDER_VERSION = "0.8.0.post1"\n'
+                  '  MLX_PACKAGES = %w[\n'
+                  '    mlx==0.32.0\n'
+                  '    mlx-metal==0.32.0\n'
+                  '    mlx-lm==0.31.3\n'
+                  '    mlx-audio==0.4.7\n'
+                  '    mlx-vlm==0.6.10\n'
+                  '  ].freeze\n',
+                  1,
+              )
+
+          if "MLX_PACKAGES" in text and 'install", "--retries", "3", "--timeout", "120", *MLX_PACKAGES' not in text:
+              text = re.sub(
+                  r'(?P<line>^[ \t]*system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath\n)',
+                  lambda m: m.group("line") + m.group("line").replace("buildpath", "*MLX_PACKAGES"),
+                  text,
+                  count=1,
+                  flags=re.M,
               )
 
           cider_block = (
               '    if cider_supported?\n'
               '      system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"\n'
+              '      system venv/"bin/python3", "-m", "pip", "freeze"\n'
               '      repair_cider_rpaths(site_packages)\n'
               '      system venv/"bin/python3", "-c", "import cider.lib._cider_prim"\n'
               '    else\n'
@@ -211,16 +242,17 @@ jobs:
           if "cider_supported?" not in text:
               lines = text.splitlines(keepends=True)
               insert_at = next(
-                  (i + 1 for i, line in enumerate(lines) if 'buildpath' in line and 'pip' in line),
+                  (i + 1 for i, line in enumerate(lines) if "site_packages = Dir[venv/" in line),
                   None,
               )
               if insert_at is None:
-                  raise SystemExit("Could not patch formula: pip buildpath install line not found")
+                  raise SystemExit("Could not patch formula: site_packages line not found")
               indent = lines[insert_at - 1][:len(lines[insert_at - 1]) - len(lines[insert_at - 1].lstrip())]
               insert = [
                   "\n",
                   f'{indent}if cider_supported?\n',
                   f'{indent}  system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{{CIDER_VERSION}}"\n',
+                  f'{indent}  system venv/"bin/python3", "-m", "pip", "freeze"\n',
                   f'{indent}  repair_cider_rpaths(site_packages)\n',
                   f'{indent}  system venv/"bin/python3", "-c", "import cider.lib._cider_prim"\n',
                   f'{indent}else\n',
@@ -364,6 +396,13 @@ jobs:
           cat > Formula/octoasr.rb << EOF
           class Octoasr < Formula
             CIDER_VERSION = "0.8.0.post1"
+            MLX_PACKAGES = %w[
+              mlx==0.32.0
+              mlx-metal==0.32.0
+              mlx-lm==0.31.3
+              mlx-audio==0.4.7
+              mlx-vlm==0.6.10
+            ].freeze
 
             desc "Local speech-to-text service powered by MLX, optimized for Apple Silicon"
             homepage "https://github.com/Mininglamp-AI/octoasr"
@@ -388,11 +427,13 @@ jobs:
               system Formula["python@3.12"].opt_bin/"python3.12", "-m", "venv", venv
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "--upgrade", "pip"
               system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", buildpath
+              system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", *MLX_PACKAGES
 
               site_packages = Dir[venv/"lib/python*/site-packages"].first
 
               if cider_supported?
                 system venv/"bin/pip", "install", "--retries", "3", "--timeout", "120", "mininglamp-cider==#{CIDER_VERSION}"
+                system venv/"bin/python3", "-m", "pip", "freeze"
                 repair_cider_rpaths(site_packages)
                 system venv/"bin/python3", "-c", "import cider.lib._cider_prim"
               else
