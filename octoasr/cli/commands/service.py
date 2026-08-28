@@ -32,6 +32,7 @@ from octoasr.cli.utils.process import (
 from octoasr.cli.utils.constants import (
     DEFAULT_MENTION_MODEL,
     DEFAULT_MODEL_TYPE,
+    DEFAULT_HOST,
     DEFAULT_PORT,
     LEGACY_MENTION_MODELS,
     LOG_FILE,
@@ -48,6 +49,13 @@ def get_configured_port() -> int:
         config = load_config()
         return config.get("server", {}).get("port", DEFAULT_PORT)
     return DEFAULT_PORT
+
+
+def get_configured_host() -> str:
+    if config_exists():
+        config = load_config()
+        return config.get("server", {}).get("host", DEFAULT_HOST)
+    return DEFAULT_HOST
 
 
 def _do_init() -> dict:
@@ -140,6 +148,7 @@ def _maybe_auto_upgrade_legacy_mention_model(config: dict) -> None:
 
 
 @click.command()
+@click.option("--host", default=None, help="Host/IP to bind service to")
 @click.option("--foreground", "-f", is_flag=True, help="Run in foreground (for debugging)")
 @click.option("--debug", "-d", is_flag=True, help="Debug mode (log transcription results)")
 @click.option(
@@ -150,7 +159,7 @@ def _maybe_auto_upgrade_legacy_mention_model(config: dict) -> None:
     show_default=True,
     help="Disable semantic auto-@ for this service run",
 )
-def start(foreground: bool, debug: bool, disable_auto_mention: bool = False):
+def start(host: str | None, foreground: bool, debug: bool, disable_auto_mention: bool = False):
     """Start OctoASR service (auto-init on first run)"""
 
     if not config_exists():
@@ -159,6 +168,7 @@ def start(foreground: bool, debug: bool, disable_auto_mention: bool = False):
         click.echo("")
 
     config = load_config()
+    host = host or config.get("server", {}).get("host", DEFAULT_HOST)
     port = config.get("server", {}).get("port", DEFAULT_PORT)
 
     asr_path = Path(config.get("models", {}).get("asr", ""))
@@ -230,21 +240,21 @@ def start(foreground: bool, debug: bool, disable_auto_mention: bool = False):
         raise SystemExit(1)
 
     if foreground:
-        _run_server(config, port, debug, disable_auto_mention)
+        _run_server(config, host, port, debug, disable_auto_mention)
     else:
-        _start_daemon(config, port, debug, disable_auto_mention)
+        _start_daemon(config, host, port, debug, disable_auto_mention)
 
     from octoasr.cli.utils.update_checker import check_and_notify
     check_and_notify()
 
 
-def _run_server(config: dict, port: int, debug: bool = False, disable_auto_mention: bool = False):
+def _run_server(config: dict, host: str, port: int, debug: bool = False, disable_auto_mention: bool = False):
     model_type_key = config.get("models", {}).get("type", DEFAULT_MODEL_TYPE)
     spec = MODEL_TYPES.get(model_type_key, {})
     asr_name = Path(config["models"]["asr"]).name
 
     click.echo(success("OctoASR service started (foreground)"))
-    click.echo(f"    Address: http://127.0.0.1:{port}")
+    click.echo(f"    Address: http://{host}:{port}")
     click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
     click.echo(f"    Model:   {asr_name}")
     if debug:
@@ -262,7 +272,7 @@ def _run_server(config: dict, port: int, debug: bool = False, disable_auto_menti
     server.MODEL_PATH = config["models"]["asr"]
     server.VAD_MODEL_PATH = config["models"].get("vad")
     server.MENTION_MODEL_PATH = config["models"].get("mention")
-    server.HOST = "0.0.0.0"
+    server.HOST = host
     server.PORT = port
     server.LOAD_ON_STARTUP = config.get("server", {}).get("load_on_startup", True)
     server.DEBUG_MODE = debug
@@ -273,10 +283,10 @@ def _run_server(config: dict, port: int, debug: bool = False, disable_auto_menti
     if spec:
         server.MODEL_TYPE = spec["server_type"]
 
-    uvicorn.run(server.app, host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run(server.app, host=host, port=port, log_level="info")
 
 
-def _start_daemon(config: dict, port: int, debug: bool = False, disable_auto_mention: bool = False):
+def _start_daemon(config: dict, host: str, port: int, debug: bool = False, disable_auto_mention: bool = False):
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     daemon_path = Path(__file__).parent.parent / "daemon.py"
@@ -286,6 +296,8 @@ def _start_daemon(config: dict, port: int, debug: bool = False, disable_auto_men
         str(daemon_path),
         "--model",
         config["models"]["asr"],
+        "--host",
+        host,
         "--port",
         str(port),
     ]
@@ -321,7 +333,7 @@ def _start_daemon(config: dict, port: int, debug: bool = False, disable_auto_men
     asr_name = Path(config["models"]["asr"]).name
 
     click.echo(success("OctoASR service started"))
-    click.echo(f"    Address: http://127.0.0.1:{port}")
+    click.echo(f"    Address: http://{host}:{port}")
     click.echo(f"    PID:     {process.pid}")
     click.echo(f"    Engine:  {model_type_key} ({spec.get('label', model_type_key)})")
     click.echo(f"    Model:   {asr_name}")
@@ -362,7 +374,7 @@ def restart(ctx, debug: bool):
         click.echo(success("Service stopped"))
 
     click.echo(info("Starting service..."))
-    ctx.invoke(start, foreground=False, debug=debug, disable_auto_mention=False)
+    ctx.invoke(start, host=None, foreground=False, debug=debug, disable_auto_mention=False)
 
 
 @click.command()
@@ -372,6 +384,7 @@ def status():
     print_header("OctoASR Service Status")
 
     pid = get_pid()
+    host = get_configured_host()
     port = get_configured_port()
 
     if pid:
@@ -388,6 +401,7 @@ def status():
                 click.echo(info(f"    Suggestion: octoasr restart or kill {port_info[0]}"))
 
         click.echo(key_value("PID", str(pid)))
+        click.echo(key_value("Host", host))
         click.echo(key_value("Port", str(port)))
         click.echo(key_value("Uptime", uptime))
 

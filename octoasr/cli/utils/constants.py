@@ -6,6 +6,7 @@ from pathlib import Path
 from octoasr import __version__ as VERSION
 
 DEFAULT_PORT = 8787
+DEFAULT_HOST = "127.0.0.1"
 
 CONFIG_DIR = Path.home() / ".octoasr"
 CONFIG_FILE = CONFIG_DIR / "config.yaml"

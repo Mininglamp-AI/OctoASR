@@ -114,7 +114,7 @@ hf download Mininglamp-2718/fsmn-vad-mlx \
 python3 server.py \
   --model-path models/Mininglamp-2718/OctoASR-1.7B-Instruct-1.0-MLX-8bit \
   --vad-model-path models/Mininglamp-2718/fsmn-vad-mlx \
-  --host 0.0.0.0 --port 8787 --load-on-startup
+  --host 127.0.0.1 --port 8787 --load-on-startup
 ```
 
 **运行要求：** macOS (Apple Silicon) · Python 3.10+ · `ffmpeg` / `ffprobe` 在 `PATH` 中。
