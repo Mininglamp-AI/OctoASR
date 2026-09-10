@@ -109,10 +109,10 @@ def _check_service_health(port: int, timeout: float = 2.0) -> tuple[bool, str]:
 def _maybe_auto_upgrade_legacy_mention_model(config: dict) -> None:
     """Auto-upgrade legacy mention model once, while preserving user choice.
 
-    Existing 1.0 users should move to the current default 1.1 model after a
-    Homebrew/code upgrade, but the old model files must stay untouched and a
-    later manual switch back to 1.0 should remain stable. The migration marker
-    makes this a one-time automatic action.
+    Existing users should move to the current default Mention model after a
+    Homebrew/code upgrade, but old model files must stay untouched and a later
+    manual switch back to an older model should remain stable. The migration
+    marker makes this a one-time automatic action per default version.
     """
     mention_config = config.get("models", {}).get("mention")
     if not mention_config:
@@ -124,7 +124,10 @@ def _maybe_auto_upgrade_legacy_mention_model(config: dict) -> None:
         return
 
     migration = config.setdefault("migration", {})
-    if migration.get(MENTION_AUTO_UPGRADE_CONFIG_KEY) == DEFAULT_MENTION_MODEL:
+    previous_auto_upgrade = migration.get(MENTION_AUTO_UPGRADE_CONFIG_KEY)
+    if previous_auto_upgrade == DEFAULT_MENTION_MODEL:
+        return
+    if previous_auto_upgrade and mention_name != previous_auto_upgrade:
         return
 
     if not mention_path.exists():
