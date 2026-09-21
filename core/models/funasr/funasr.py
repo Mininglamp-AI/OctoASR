@@ -41,6 +41,8 @@ class STTOutput:
     task: str = None
     duration: float = None
     tokens: List[int] = None
+    prompt_tokens: int = 0
+    generation_tokens: int = 0
 
 
 # Supported languages for Fun-ASR (based on Qwen3's multilingual capabilities)
@@ -629,6 +631,7 @@ class Model(nn.Module):
             system_prompt=system_prompt,
             user_prompt=user_prompt
         )
+        self._last_prompt_tokens = int(input_embeddings.shape[1])
 
         # Initialize cache
         cache = None
@@ -823,6 +826,8 @@ class Model(nn.Module):
             task=task,
             duration=duration,
             tokens=tokens,
+            prompt_tokens=int(getattr(self, "_last_prompt_tokens", 0) or 0),
+            generation_tokens=len(tokens),
             segments=None,  # LLM-based model doesn't produce word-level timestamps
         )
 
@@ -890,6 +895,8 @@ class Model(nn.Module):
             task=task,
             duration=duration,
             tokens=tokens,
+            prompt_tokens=int(getattr(self, "_last_prompt_tokens", 0) or 0),
+            generation_tokens=len(tokens),
             segments=None,
         )
 

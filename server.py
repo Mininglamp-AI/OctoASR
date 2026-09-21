@@ -237,13 +237,13 @@ def get_mention_model() -> Optional[MentionJudge]:
     return _mention_model
 
 
-def judge_mention(asr_text: str, chat_context: Optional[str], member_context: Optional[str]) -> Optional[dict]:
+def judge_mention(asr_text: str, chat_context: Optional[str], member_context: Optional[str], return_usage: bool = False) -> Optional[dict]:
     """Run the mention judgement (only called for group chats). Returns None
     when the model is unavailable."""
     model = get_mention_model()
     if model is None:
         return None
-    return model.judge(asr_text, chat_context or "", member_context or "")
+    return model.judge(asr_text, chat_context or "", member_context or "", return_usage=return_usage)
 
 
 async def run_model_worker(func, *args, **kwargs):
@@ -579,10 +579,16 @@ async def transcribe_voice(
         hotwords = extract_hotwords_from_context(personal_context)
         hotwords = ['@'] + hotwords[:100]
         
+        asr_usage = {
+            "model": Path(MODEL_PATH).name if MODEL_PATH else None,
+            "called": False,
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
         assert _generate_lock is not None
         async with _generate_lock:
             model = await run_model_worker(get_model)
-            transcript = await run_model_worker(
+            asr_result = await run_model_worker(
                 model.generate,
                 asr_audio_path,
                 # hotwords=hotwords,
@@ -590,7 +596,15 @@ async def transcribe_voice(
                 target_language="auto",  # zh
                 content_style='formal',
                 merge_vad=True,
+                return_usage=True,
         )
+        if isinstance(asr_result, dict):
+            transcript = str(asr_result.get("text") or "")
+            asr_usage.update(asr_result.get("usage") or {})
+        else:
+            transcript = str(asr_result or "")
+            asr_usage["called"] = True
+        extras["usage"] = {"asr": asr_usage}
         
         try:
             # ASR often transcribes the spoken "@" (pronounced "at") as the
@@ -628,27 +642,47 @@ async def transcribe_voice(
         # the request. Private/non-group chats short-circuit before touching
         # the model (no lock, no worker thread).
         mention_result = None
+        mention_usage = {
+            "model": Path(MENTION_MODEL_PATH).name if MENTION_MODEL_PATH else None,
+            "called": False,
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
         final_text = transcript
         try:
             mention_chat = tail_text(chat_context, CHAT_CONTEXT_LIMIT)
             mention_member = tail_text(member_context, MEMBER_CONTEXT_LIMIT)
             if auto_mention_disabled:
                 mention_result = empty_result(skipped="disabled_by_request")
+                mention_usage["skipped"] = "disabled_by_request"
             elif MENTION_MODEL_PATH is None:
                 mention_result = None  # feature disabled
+                mention_usage["skipped"] = "no_model"
             elif not is_group_chat(mention_chat):
                 mention_result = empty_result(skipped="not_group_chat")
+                mention_usage["skipped"] = "not_group_chat"
             else:
                 assert _generate_lock is not None
                 async with _generate_lock:
-                    mention_result = await run_model_worker(
-                        judge_mention, transcript, mention_chat, mention_member)
+                    mention_payload = await run_model_worker(
+                        judge_mention, transcript, mention_chat, mention_member, True)
+                if mention_payload is None:
+                    mention_usage["skipped"] = "model_unavailable"
+                elif isinstance(mention_payload, dict) and "result" in mention_payload:
+                    mention_result = mention_payload.get("result")
+                    mention_usage.update(mention_payload.get("usage") or {})
+                else:
+                    mention_result = mention_payload
+                    mention_usage["called"] = True
             final_text = apply_mention(transcript, mention_result)
         except Exception as exc:
             logger.exception("[mention] judge failed: %s", exc)
+            mention_usage["skipped"] = "error"
             final_text = transcript
         extras["mention"] = mention_result
         extras["transcript_with_mention"] = final_text
+        usage = {"asr": asr_usage, "mention": mention_usage}
+        extras["usage"] = usage
         if mention_result is None:
             logger.info("[mention] disabled (no model)")
         elif mention_result.get("skipped"):
@@ -687,6 +721,7 @@ async def transcribe_voice(
             "mention": mention_result,
             "m": MODEL_NAME,
             "engine": ENGINE_NAME,
+            "usage": usage,
         })
     except Exception as exc:
         return await finalize(api_error(500, "transcription service error", exc=exc, request=request))
