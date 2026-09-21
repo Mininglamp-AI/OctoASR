@@ -150,6 +150,38 @@ def parse_json(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _encoded_length(encoded: Any) -> int:
+    if encoded is None:
+        return 0
+    if isinstance(encoded, dict):
+        return _encoded_length(encoded.get("input_ids"))
+    if hasattr(encoded, "shape"):
+        shape = encoded.shape
+        return int(shape[-1]) if shape else 0
+    if isinstance(encoded, (list, tuple)):
+        if encoded and isinstance(encoded[0], (list, tuple)):
+            return len(encoded[0])
+        return len(encoded)
+    return 0
+
+
+def count_text_tokens(processor: Any, text: str) -> int:
+    """Best-effort token counting with the model's own tokenizer/processor."""
+    tokenizer = getattr(processor, "tokenizer", None) or processor
+    try:
+        return _encoded_length(tokenizer.encode(text, add_special_tokens=False))
+    except TypeError:
+        try:
+            return _encoded_length(tokenizer.encode(text))
+        except Exception:
+            return 0
+    except Exception:
+        try:
+            return _encoded_length(tokenizer(text))
+        except Exception:
+            return 0
+
+
 def empty_result(skipped: Optional[str] = None) -> Dict[str, Any]:
     """Uniform empty judgement, so the `mention` field shape stays consistent."""
     result: Dict[str, Any] = {
@@ -172,11 +204,12 @@ def empty_result(skipped: Optional[str] = None) -> Dict[str, Any]:
 class MentionJudge:
     """Wraps an mlx_vlm model that outputs the @mention judgement as JSON."""
 
-    def __init__(self, model, processor, config, system_prompt: str):
+    def __init__(self, model, processor, config, system_prompt: str, model_name: str = ""):
         self.model = model
         self.processor = processor
         self.config = config
         self.system_prompt = system_prompt
+        self.model_name = model_name
 
     @classmethod
     def from_pretrained(cls, model_path: str) -> "MentionJudge":
@@ -199,7 +232,7 @@ class MentionJudge:
             logger.info(f"[mention] cider status: {stats}")
             
         config = load_config(model_path)
-        return cls(model, processor, config, system_prompt)
+        return cls(model, processor, config, system_prompt, Path(model_path).name)
 
     def judge(
         self,
@@ -208,6 +241,7 @@ class MentionJudge:
         member_context: str = "",
         *,
         max_tokens: int = 512,
+        return_usage: bool = False,
     ) -> Dict[str, Any]:
         """Run inference only (group/private short-circuit is done in server).
 
@@ -225,15 +259,24 @@ class MentionJudge:
         ]
         formatted = apply_chat_template(
             self.processor, self.config, messages, num_images=0)
+        usage = {
+            "model": self.model_name,
+            "called": True,
+            "input_tokens": count_text_tokens(self.processor, formatted),
+            "output_tokens": 0,
+        }
         out = generate(
             self.model, self.processor, formatted,
             max_tokens=max_tokens, verbose=False)
         resp = out if isinstance(out, str) else getattr(out, "text", str(out))
+        usage["output_tokens"] = count_text_tokens(self.processor, resp)
 
         parsed = parse_json(resp)
         if parsed is None:
             logger.warning("[mention] JSON parse failed, raw=%s", (resp or "")[:200])
-            return empty_result()
+            parsed = empty_result()
+        if return_usage:
+            return {"result": parsed, "usage": usage}
         return parsed
 
 

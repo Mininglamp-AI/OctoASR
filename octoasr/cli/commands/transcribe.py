@@ -109,19 +109,29 @@ def _transcribe_directly(audio_path: Path, hotwords: str, output_format: str) ->
     if hotwords:
         hotword_list = ["@"] + [w.strip() for w in hotwords.split(",") if w.strip()][:100]
 
-    text = model.generate(
+    result = model.generate(
         audio_path,
         hotwords=hotword_list if hotword_list else None,
         task="translate",
         target_language="zh",
         merge_vad=True,
+        return_usage=output_format == "json",
     )
+    if isinstance(result, dict):
+        text = result.get("text", "")
+        usage = result.get("usage", {})
+    else:
+        text = result
+        usage = {}
 
     if output_format == "json":
         result = {
             "text": text,
             "model": Path(config["models"]["asr"]).name,
             "engine": model_type_key,
+            "usage": {
+                "asr": usage,
+            },
         }
         return json.dumps(result, ensure_ascii=False, indent=2)
 

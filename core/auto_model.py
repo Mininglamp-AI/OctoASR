@@ -153,10 +153,11 @@ class AutoModel:
             if is_available():
                 convert_model(self.model.llm.model)
 
-    def generate(self, input: Union[str, Path], content_style='original', hotwords: Optional[List[str] | str] = None, **cfg: Any) -> str:
-        """Transcribe one local audio file and return only the text."""
+    def generate(self, input: Union[str, Path], content_style='original', hotwords: Optional[List[str] | str] = None, **cfg: Any) -> Union[str, Dict[str, Any]]:
+        """Transcribe one local audio file and return text, optionally with usage."""
         assert content_style is not None and content_style in ['original', 'informal', 'formal']
         mx.reset_peak_memory()
+        return_usage = bool(cfg.pop("return_usage", False))
         
         if hotwords is not None and len(hotwords) > 0:
             if isinstance(hotwords, str):
@@ -172,16 +173,25 @@ class AutoModel:
             raise FileNotFoundError(f"Audio file not found: {audio_path}")
 
         if self.vad_model is None:
-            return self._recognize_file(audio_path, cfg, context=context, content_style=content_style)
+            text, usage = self._recognize_file(audio_path, cfg, context=context, content_style=content_style)
+            if return_usage:
+                return {"text": text, "usage": usage}
+            return text
 
         vad_segments = self._detect_segments(audio_path, cfg)
         if not vad_segments:
+            usage = self._empty_usage(called=False)
+            if return_usage:
+                return {"text": "", "usage": usage}
             return ""
         waveform = self._load_waveform(audio_path)
 
-        texts = self._recognize_segments(waveform, vad_segments, cfg, context=context, content_style=content_style)
+        texts, usage = self._recognize_segments(waveform, vad_segments, cfg, context=context, content_style=content_style)
         separator = str(cfg.get("segment_separator", " "))
-        return separator.join(texts).strip()
+        text = separator.join(texts).strip()
+        if return_usage:
+            return {"text": text, "usage": usage}
+        return text
 
     transcribe = generate
 
@@ -209,10 +219,43 @@ class AutoModel:
             kwargs[self._prompt_key] = context
         return kwargs
 
-    def _recognize_file(self, audio_path: Path, cfg: Dict[str, Any], context: Optional[str] = None, content_style: str = None) -> str:
+    def _empty_usage(self, called: bool = True) -> Dict[str, Any]:
+        return {
+            "model": Path(self.model_path).name,
+            "called": called,
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+
+    def _usage_from_output(self, output: Any) -> Dict[str, Any]:
+        usage = self._empty_usage(called=True)
+        usage["input_tokens"] = int(getattr(output, "prompt_tokens", 0) or 0)
+        usage["output_tokens"] = int(getattr(output, "generation_tokens", 0) or 0)
+        tokens = getattr(output, "tokens", None)
+        if usage["output_tokens"] == 0 and tokens is not None:
+            usage["output_tokens"] = len(tokens)
+        return usage
+
+    @staticmethod
+    def _merge_usage(items: Iterable[Dict[str, Any]], model_name: str) -> Dict[str, Any]:
+        merged = {
+            "model": model_name,
+            "called": False,
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+        for item in items:
+            if not item:
+                continue
+            merged["called"] = bool(merged["called"] or item.get("called", True))
+            merged["input_tokens"] += int(item.get("input_tokens", 0) or 0)
+            merged["output_tokens"] += int(item.get("output_tokens", 0) or 0)
+        return merged
+
+    def _recognize_file(self, audio_path: Path, cfg: Dict[str, Any], context: Optional[str] = None, content_style: str = None) -> tuple[str, Dict[str, Any]]:
         kwargs = self._build_generate_kwargs(cfg, context, content_style=content_style)
         output = self.model.generate(str(audio_path), **kwargs)
-        return (getattr(output, "text", "") or "").strip()
+        return (getattr(output, "text", "") or "").strip(), self._usage_from_output(output)
 
     def _detect_segments(self, audio_path: Path, cfg: Dict[str, Any]) -> List[List[int]]:
         if self.vad_model is None:
@@ -322,10 +365,11 @@ class AutoModel:
         cfg: Dict[str, Any],
         context: Optional[str] = None,
         content_style: str = None,
-    ) -> List[str]:
+    ) -> tuple[List[str], Dict[str, Any]]:
         kwargs = self._build_generate_kwargs(cfg, context, content_style=content_style)
         
         texts: List[str] = []
+        usages: List[Dict[str, Any]] = []
         min_segment_samples = max(
             int(int(cfg.get("min_segment_ms", self.min_segment_ms)) * self.fs / 1000),
             1,
@@ -340,9 +384,11 @@ class AutoModel:
             clip = waveform[start:end].astype(np.float32, copy=False)
             output = self.model.generate(clip, **kwargs)
             text = (getattr(output, "text", "") or "").strip()
+            usages.append(self._usage_from_output(output))
             if text:
                 texts.append(text)
-        return texts
+        usage = self._merge_usage(usages, Path(self.model_path).name)
+        return texts, usage
 
     def _asr_kwargs(self, cfg: Dict[str, Any]) -> Dict[str, Any]:
         asr_kwargs = dict(self.asr_defaults)
