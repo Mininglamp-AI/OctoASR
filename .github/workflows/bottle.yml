@@ -75,8 +75,6 @@ jobs:
         include:
           - os: macos-15
             tag: arm64_sequoia
-          - os: macos-14
-            tag: arm64_sonoma
           - os: macos-26
             tag: arm64_tahoe
     runs-on: ${{ matrix.os }}
@@ -374,7 +372,7 @@ jobs:
             --dir ./bottles
 
           cd bottles
-          for tag in arm64_sequoia arm64_sonoma arm64_tahoe; do
+          for tag in arm64_sequoia arm64_tahoe; do
             FILE="octoasr-${VERSION}.${tag}.bottle.tar.gz"
             SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
             echo "${tag}_sha256=$SHA" >> "$GITHUB_OUTPUT"
@@ -387,7 +385,6 @@ jobs:
           VERSION: ${{ needs.create-release.outputs.version }}
           SOURCE_SHA256: ${{ needs.create-release.outputs.source_sha256 }}
           SEQUOIA_SHA256: ${{ steps.collect.outputs.arm64_sequoia_sha256 }}
-          SONOMA_SHA256: ${{ steps.collect.outputs.arm64_sonoma_sha256 }}
           TAHOE_SHA256: ${{ steps.collect.outputs.arm64_tahoe_sha256 }}
         run: |
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/Mininglamp-AI/homebrew-tap.git" tap-repo
@@ -413,7 +410,6 @@ jobs:
             bottle do
               root_url "https://github.com/Mininglamp-AI/octoasr/releases/download/v${VERSION}"
               sha256 cellar: :any_skip_relocation, arm64_sequoia: "${SEQUOIA_SHA256}"
-              sha256 cellar: :any_skip_relocation, arm64_sonoma: "${SONOMA_SHA256}"
               sha256 cellar: :any_skip_relocation, arm64_tahoe: "${TAHOE_SHA256}"
             end
 
