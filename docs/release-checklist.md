@@ -8,6 +8,8 @@
 - [x] 模型完整性检查（`_is_model_complete`：验证 safetensors 文件 + 无残留 temp）
 - [x] 自动探测网络环境选择下载源（`_detect_preferred_source`）
 - [x] `homebrew/octoasr.rb` 添加 `arm64_tahoe` (macOS 26) bottle 标签
+- [x] Homebrew 发布工作流添加 `arm64_golden_gate` (macOS 27) bottle 构建
+- [x] macOS 26/27 bottle 验证 `mininglamp-cider` 及原生扩展已打包
 - [x] `.gitignore` 排除 `homebrew/octoasr-local.rb`（防止本地测试路径泄露）
 
 ## 占位符（发布前必须替换）
@@ -21,13 +23,13 @@
 | 占位符 | 说明 | 何时可获取 |
 |--------|------|-----------|
 | `PLACEHOLDER_SOURCE_SHA256` | 源码包 tar.gz 的 SHA256 | 在发布平台创建 Release 上传源码后，`shasum -a 256` 计算 |
-| `PLACEHOLDER_BOTTLE_SHA256`（×3） | 各 macOS 版本 bottle 的 SHA256 | 运行 `build-bottle.sh` 后自动输出，或 `build-release.sh` 计算 |
+| `PLACEHOLDER_BOTTLE_SHA256` | 各 macOS 版本 bottle 的 SHA256 | 运行 `build-bottle.sh` 后自动输出，或 `build-release.sh` 计算 |
 
 **替换方式：**
 ```bash
 # build-bottle.sh 输出示例：
 #   SHA256: 4dbc8306f0400aeee289b1633782c8bee14befd7f7e7575d031a145aa3a27516
-# 将该值填入对应的 arm64_tahoe / arm64_sequoia / arm64_sonoma 行
+# 将该值填入对应的 arm64_golden_gate / arm64_tahoe / arm64_sequoia 行
 
 # 或用 build-release.sh 一键生成所有 SHA256
 ./homebrew/build-release.sh

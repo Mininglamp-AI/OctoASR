@@ -73,10 +73,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-15
-            tag: arm64_sequoia
+          - os: xcode-27
+            tag: arm64_golden_gate
           - os: macos-26
             tag: arm64_tahoe
+          - os: macos-15
+            tag: arm64_sequoia
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set up Homebrew
@@ -331,9 +333,33 @@ jobs:
         run: |
           brew install --build-bottle Mininglamp-AI/tap/octoasr
 
+      - name: Verify Cider installation
+        if: matrix.tag == 'arm64_golden_gate' || matrix.tag == 'arm64_tahoe'
+        run: |
+          FORMULA_PREFIX="$(brew --prefix Mininglamp-AI/tap/octoasr)"
+          VENV_PYTHON="${FORMULA_PREFIX}/libexec/venv/bin/python3"
+          "${VENV_PYTHON}" - <<'PY'
+          import importlib.metadata
+
+          expected = "0.8.0.post1"
+          actual = importlib.metadata.version("mininglamp-cider")
+          assert actual == expected, f"expected mininglamp-cider {expected}, got {actual}"
+
+          import cider.lib._cider_prim
+          print(f"mininglamp-cider {actual}: native extension loaded")
+          PY
+
       - name: Build bottle
         run: |
           brew bottle --no-rebuild --json Mininglamp-AI/tap/octoasr
+
+      - name: Verify Cider is packaged in bottle
+        if: matrix.tag == 'arm64_golden_gate' || matrix.tag == 'arm64_tahoe'
+        run: |
+          BOTTLE_FILE=$(ls octoasr--*.bottle.tar.gz)
+          tar -tzf "$BOTTLE_FILE" > bottle-contents.txt
+          grep -q '/site-packages/cider/' bottle-contents.txt
+          grep -Eq '/site-packages/mininglamp_cider-.*\.dist-info/' bottle-contents.txt
 
       - name: Rename and get bottle info
         id: bottle_info
@@ -372,7 +398,7 @@ jobs:
             --dir ./bottles
 
           cd bottles
-          for tag in arm64_sequoia arm64_tahoe; do
+          for tag in arm64_golden_gate arm64_tahoe arm64_sequoia; do
             FILE="octoasr-${VERSION}.${tag}.bottle.tar.gz"
             SHA=$(sha256sum "$FILE" | cut -d' ' -f1)
             echo "${tag}_sha256=$SHA" >> "$GITHUB_OUTPUT"
@@ -384,8 +410,9 @@ jobs:
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           VERSION: ${{ needs.create-release.outputs.version }}
           SOURCE_SHA256: ${{ needs.create-release.outputs.source_sha256 }}
-          SEQUOIA_SHA256: ${{ steps.collect.outputs.arm64_sequoia_sha256 }}
+          GOLDEN_GATE_SHA256: ${{ steps.collect.outputs.arm64_golden_gate_sha256 }}
           TAHOE_SHA256: ${{ steps.collect.outputs.arm64_tahoe_sha256 }}
+          SEQUOIA_SHA256: ${{ steps.collect.outputs.arm64_sequoia_sha256 }}
         run: |
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/Mininglamp-AI/homebrew-tap.git" tap-repo
           cd tap-repo
@@ -409,8 +436,9 @@ jobs:
 
             bottle do
               root_url "https://github.com/Mininglamp-AI/octoasr/releases/download/v${VERSION}"
-              sha256 cellar: :any_skip_relocation, arm64_sequoia: "${SEQUOIA_SHA256}"
+              sha256 cellar: :any_skip_relocation, arm64_golden_gate: "${GOLDEN_GATE_SHA256}"
               sha256 cellar: :any_skip_relocation, arm64_tahoe: "${TAHOE_SHA256}"
+              sha256 cellar: :any_skip_relocation, arm64_sequoia: "${SEQUOIA_SHA256}"
             end
 
             depends_on "ffmpeg"
