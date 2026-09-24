@@ -8,29 +8,27 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' "$PROJECT_DIR/octoasr/__init__.py")"
 BUILD_DIR="$PROJECT_DIR/build/bottle"
 
-# 检测 Python
-PYTHON=""
-for candidate in python3.13 python3.12 python3; do
-    if command -v "$candidate" &>/dev/null; then
-        PYTHON="$candidate"
-        break
-    fi
-done
+# Cider 0.8.0.post1 ships a CPython 3.12 wheel.
+PYTHON="$(command -v python3.12 || true)"
 if [ -z "$PYTHON" ]; then
-    echo "  ✗ 未找到 Python 3，请安装 Python 3.10+"
+    echo "  ✗ 未找到 Python 3.12，请先安装 python@3.12"
     exit 1
 fi
 PYTHON_VERSION=$("$PYTHON" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 
 # 检测 macOS bottle tag
-MACOS_TAG="arm64_$(sw_vers -productVersion | cut -d. -f1 | xargs -I{} python3 -c "
-names={15:'sequoia',14:'sonoma',13:'ventura',12:'monterey',11:'big_sur'}
-print(names.get({},f'macos{}'))
-")"
-# fallback: 用 brew 检测
-if echo "$MACOS_TAG" | grep -q "macos"; then
-    MACOS_TAG="arm64_$(brew ruby -e 'puts MacOS.version.to_sym' 2>/dev/null || echo 'sonoma')"
-fi
+MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
+case "$MACOS_MAJOR" in
+    27) MACOS_NAME="golden_gate" ;;
+    26) MACOS_NAME="tahoe" ;;
+    15) MACOS_NAME="sequoia" ;;
+    14) MACOS_NAME="sonoma" ;;
+    13) MACOS_NAME="ventura" ;;
+    12) MACOS_NAME="monterey" ;;
+    11) MACOS_NAME="big_sur" ;;
+    *) MACOS_NAME=$(brew ruby -e 'puts MacOS.version.to_sym' 2>/dev/null || echo "macos${MACOS_MAJOR}") ;;
+esac
+MACOS_TAG="arm64_${MACOS_NAME}"
 BOTTLE_NAME="octoasr--${VERSION}.${MACOS_TAG}.bottle.tar.gz"
 
 echo ""
@@ -53,6 +51,27 @@ echo "  [1/6] 创建虚拟环境..."
 echo "  [2/6] 安装依赖..."
 "$INSTALL_DIR/libexec/bin/pip" install --upgrade pip -q
 "$INSTALL_DIR/libexec/bin/pip" install "$PROJECT_DIR" -q
+"$INSTALL_DIR/libexec/bin/pip" install \
+    "mlx==0.32.0" \
+    "mlx-metal==0.32.0" \
+    "mlx-lm==0.31.3" \
+    "mlx-audio==0.4.7" \
+    "mlx-vlm==0.6.10" -q
+
+if [ "$MACOS_MAJOR" -ge 26 ]; then
+    "$INSTALL_DIR/libexec/bin/pip" install "mininglamp-cider==0.8.0.post1" -q
+
+    CIDER_LIB="$INSTALL_DIR/libexec/lib/python${PYTHON_VERSION}/site-packages/cider/lib"
+    for binary in \
+        "$CIDER_LIB/_cider_prim.cpython-312-darwin.so" \
+        "$CIDER_LIB/libcider_prim_lib.dylib"; do
+        install_name_tool -add_rpath '@loader_path/../../mlx/lib' "$binary"
+        codesign --force --sign - "$binary"
+    done
+
+    "$INSTALL_DIR/libexec/bin/python3" -c \
+        'import cider.lib._cider_prim; print("Cider native extension loaded")'
+fi
 
 # 2. 复制核心代码（server.py, core/, utils/）
 echo "  [3/6] 复制核心代码..."
